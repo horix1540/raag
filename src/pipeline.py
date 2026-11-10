@@ -60,6 +60,7 @@ def answer_question(
     run_tag: str | None = None,
     item_id: str | None = None,
     baseline: bool = False,
+    prompt_only: bool = False,
 ) -> PipelineResult:
     """Run the confidence-aware pipeline for one question.
 
@@ -74,7 +75,8 @@ def answer_question(
     cfg = settings.confidence
     evaluator = get_evaluator()
 
-    meta: dict[str, Any] = {"arm": "baseline" if baseline else "guarded"}
+    arm_name = "baseline" if baseline else ("prompt_only" if prompt_only else "guarded")
+    meta: dict[str, Any] = {"arm": arm_name}
     if item_id is not None:
         meta["item_id"] = item_id
 
@@ -92,6 +94,30 @@ def answer_question(
             composite=evaluator.combine(gate_a, gate_b),
             verdict="answer",
             explanation="Baseline arm: gates measured but not enforced.",
+        )
+        return _finalise(
+            question, gen.answer, gen.answer, retrieval, gen, report,
+            retrieval_ms, t_start, persist, run_tag, meta,
+        )
+
+    if prompt_only:
+        gen = generate(question, retrieval.contexts)
+        gate_a = evaluator.gate_a(retrieval)
+        if gen.self_reported_insufficient:
+            report = evaluator.decide(gate_a, None)
+            report.verdict = "abstain_no_context"
+            report.explanation = "Prompt-only arm: generator self-refused (INSUFFICIENT_CONTEXT)."
+            return _finalise(
+                question, gen.answer, cfg.abstain_message, retrieval, gen, report,
+                retrieval_ms, t_start, persist, run_tag, {**meta, "self_abstain": True},
+            )
+        gate_b = evaluator.gate_b(question, gen.answer, retrieval.contexts)
+        report = ConfidenceReport(
+            gate_a=gate_a,
+            gate_b=gate_b,
+            composite=evaluator.combine(gate_a, gate_b),
+            verdict="answer",
+            explanation="Prompt-only arm: abstention prompt active; gates measured but not enforced.",
         )
         return _finalise(
             question, gen.answer, gen.answer, retrieval, gen, report,

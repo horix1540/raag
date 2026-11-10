@@ -1,12 +1,6 @@
 """Streamlit front end for the Confidence-Aware RAG Studio.
 
 Run with:  streamlit run app.py
-
-The interface is built around making the confidence decision *visible*. A demo
-that just prints an answer proves nothing; this studio shows which stage of the
-pipeline passed or failed, both gate scores against their thresholds, the
-per-claim entailment breakdown, Gate B v2 windowing settings, live document
-ingestion, and why the pipeline chose to answer or abstain.
 """
 
 from __future__ import annotations
@@ -94,20 +88,29 @@ def _sidebar() -> dict:
         st.page_link("pages/2_Monitoring_Dashboard.py", label="Telemetry & Audit Dashboard", icon="📊")
         st.divider()
 
-        st.markdown("### ⚙️ Execution Mode")
-        baseline = st.toggle(
-            "Baseline control mode (unforced)",
-            value=False,
-            help="Turns safety enforcement off: Gate A and Gate B are still measured and displayed, "
-            "but the LLM answer is never withheld. Compare directly against Guarded mode.",
+        st.markdown("### ⚙️ Execution Arm & Mode")
+        exec_mode = st.radio(
+            "Pipeline execution arm",
+            [
+                "Guarded (2-Gate Safety)",
+                "Prompt-Only (No Gates · H3 Ablation)",
+                "Baseline Control (Unguarded)",
+                "Side-by-Side (Guarded vs. Baseline)",
+            ],
+            index=0,
+            help="Compare Guarded mode against Prompt-Only (isolates prompt vs. gates per Project Review H3), "
+            "Baseline Control, or run Guarded and Baseline side-by-side.",
         )
+        baseline = exec_mode == "Baseline Control (Unguarded)"
+        prompt_only = exec_mode == "Prompt-Only (No Gates · H3 Ablation)"
+        compare_both = exec_mode == "Side-by-Side (Guarded vs. Baseline)"
 
         st.markdown("### 🧠 Model & Gate Backends")
         provider = st.selectbox(
             "Generator LLM provider",
             ["ollama", "groq", "gemini"],
             index=["ollama", "groq", "gemini"].index(settings.llm.provider),
-            help="Ollama runs locally (llama3.1:8b) with zero rate limits. Groq and Gemini use .env API keys.",
+            help="Ollama runs locally (llama3.1:8b). Groq and Gemini use .env API keys.",
         )
         settings.llm.provider = provider  # type: ignore[assignment]
 
@@ -119,40 +122,49 @@ def _sidebar() -> dict:
         )
         settings.confidence.scorer = scorer  # type: ignore[assignment]
 
+        if st.button("🔌 Test LLM Connection", use_container_width=True):
+            from src.llm import health_check
+
+            ok, msg = health_check()
+            if ok:
+                st.success(msg)
+            else:
+                st.error(msg)
+
         with st.expander("🔬 Gate B v2 NLI Settings (M5)", expanded=False):
             st.caption(
-                "Gate B v2 scores claims against both whole passages and 3-sentence windows "
-                "(cutting SQuAD 2.0 over-abstention from 71% to 48%, p < 0.001)."
+                "Gate B v2 scores claims against whole passages, 3-sentence windows, or multi-hop top-2 pairs."
             )
-            premise_opts = ["both", "window", "passage"]
+            premise_opts = ["both", "multi_hop", "window", "passage"]
+            if st.session_state.get("cfg_nli_premise") not in premise_opts:
+                st.session_state["cfg_nli_premise"] = "both"
             premise = st.selectbox(
                 "NLI premise granularity",
                 premise_opts,
                 key="cfg_nli_premise",
-                help="both = Gate B v2 (passages + 3-sentence windows). passage = Gate B v1 (Milestones 1–4).",
+                help="both = Gate B v2 (passages + 3-sentence windows). multi_hop = adds top-2 passage pair. passage = v1.",
             )
             settings.confidence.nli_premise = premise
 
-            hyp_opts = ["claim", "qa_short", "qa"]
+            hyp_opts = ["claim", "claim_clean", "qa_short", "qa"]
+            if st.session_state.get("cfg_nli_hypothesis") not in hyp_opts:
+                st.session_state["cfg_nli_hypothesis"] = "claim"
             hyp = st.selectbox(
                 "NLI hypothesis construction",
                 hyp_opts,
                 key="cfg_nli_hypothesis",
-                help="claim = raw sentence. qa_short = prefix question on short claims (<= 8 words).",
+                help="claim = v1 raw sentence. claim_clean = strips [1] citations. qa_short = prefixes question on short claims.",
             )
             settings.confidence.nli_hypothesis = hyp
 
         with st.expander("🎚️ Calibrated Thresholds", expanded=False):
-            st.caption(
-                "Fitted on SQuAD 2.0 dev set (Youden's J for Gate A, F1 above contradiction cap for Gate B)."
-            )
+            st.caption("Fitted on SQuAD 2.0 dev set (Youden's J for Gate A, F1 above contradiction cap for Gate B).")
             settings.confidence.gate_a_threshold = st.slider(
                 "Gate A · retrieval relevance",
                 0.0,
                 1.0,
                 step=0.01,
                 key="cfg_gate_a",
-                help="Higher = refuses more queries before calling the LLM (calibrated: 0.45).",
             )
             settings.confidence.gate_b_threshold = st.slider(
                 "Gate B · NLI support needed",
@@ -160,7 +172,6 @@ def _sidebar() -> dict:
                 1.0,
                 step=0.01,
                 key="cfg_gate_b",
-                help="Higher = withholds more answers with weak passage entailment (calibrated: 0.25).",
             )
             settings.confidence.composite_threshold = st.slider(
                 "Composite low-confidence warning",
@@ -168,7 +179,6 @@ def _sidebar() -> dict:
                 1.0,
                 step=0.01,
                 key="cfg_composite",
-                help="Answers below this weighted harmonic mean are flagged (calibrated: 0.33).",
             )
             top_k = st.slider("Top-K passages to retrieve", 1, 12, key="cfg_top_k")
             st.button(
@@ -196,7 +206,13 @@ def _sidebar() -> dict:
 
         st.divider()
         index_slot = st.empty()
-    return {"top_k": top_k, "baseline": baseline, "index_slot": index_slot}
+    return {
+        "top_k": top_k,
+        "baseline": baseline,
+        "prompt_only": prompt_only,
+        "compare_both": compare_both,
+        "index_slot": index_slot,
+    }
 
 
 def _index_status(slot) -> None:
@@ -244,13 +260,25 @@ def _ask_form() -> str | None:
     return st.session_state.get("submitted") or None
 
 
-def _run(question: str, opts: dict):
+def _run_single(question: str, top_k: int, baseline: bool, prompt_only: bool):
     from src.pipeline import answer_question
 
+    return answer_question(
+        question,
+        top_k=top_k,
+        baseline=baseline,
+        prompt_only=prompt_only,
+        store=_store(settings.retrieval.collection_name),
+    )
+
+
+def _run(question: str, opts: dict):
     sig = (
         question,
         opts["top_k"],
         opts["baseline"],
+        opts["prompt_only"],
+        opts["compare_both"],
         settings.confidence.gate_a_threshold,
         settings.confidence.gate_b_threshold,
         settings.confidence.composite_threshold,
@@ -263,20 +291,34 @@ def _run(question: str, opts: dict):
     if cached and cached[0] == sig:
         return cached[1]
 
-    with st.status("Executing two-gate confidence pipeline…", expanded=True) as status:
+    with st.status("Executing confidence-aware pipeline…", expanded=True) as status:
         st.write(
             "1. Retrieving top-k chunks via MiniLM bi-encoder\n"
             "2. Evaluating Gate A cross-encoder relevance (`ms-marco-MiniLM-L-6-v2`)\n"
             "3. Generating context-constrained answer & running Gate B DeBERTa NLI verification…"
         )
-        st.caption("Cold start loads local transformer weights onto GPU/CPU; subsequent queries run in milliseconds.")
         try:
-            result = answer_question(
-                question,
-                top_k=opts["top_k"],
-                baseline=opts["baseline"],
-                store=_store(settings.retrieval.collection_name),
-            )
+            if opts["compare_both"]:
+                guarded_res = _run_single(question, opts["top_k"], baseline=False, prompt_only=False)
+                base_res = _run_single(question, opts["top_k"], baseline=True, prompt_only=False)
+                result = (guarded_res, base_res)
+                status.update(
+                    label=f"Completed Side-by-Side Comparison · Guarded: {guarded_res.verdict}",
+                    state="complete",
+                    expanded=False,
+                )
+            else:
+                result = _run_single(
+                    question,
+                    opts["top_k"],
+                    baseline=opts["baseline"],
+                    prompt_only=opts["prompt_only"],
+                )
+                status.update(
+                    label=f"Completed in {result.total_ms / 1000:.2f} s · Verdict: {result.verdict}",
+                    state="complete",
+                    expanded=False,
+                )
         except Exception as exc:  # noqa: BLE001
             status.update(label="Pipeline execution failed", state="error")
             st.error(f"{type(exc).__name__}: {exc}")
@@ -285,21 +327,22 @@ def _run(question: str, opts: dict):
                 "or switch provider to Groq/Gemini in the sidebar."
             )
             return None
-        status.update(
-            label=f"Completed in {result.total_ms / 1000:.2f} s · Verdict: {result.verdict}",
-            state="complete",
-            expanded=False,
-        )
     st.session_state["last"] = (sig, result)
     return result
 
 
-def _render_answer(result, baseline: bool) -> None:
+def _render_answer(result, baseline: bool, prompt_only: bool) -> None:
     rep = result.confidence
     if baseline:
         ui.verdict_banner(
             "answer",
             f"Baseline control arm active: gates were measured (Composite {rep.composite:.2f}) but not enforced.",
+        )
+    elif prompt_only:
+        ui.verdict_banner(
+            rep.verdict,
+            f"Prompt-only arm (H3 ablation): abstention prompt active; gates measured (Composite {rep.composite:.2f}) "
+            "but not enforced.",
         )
     else:
         ui.verdict_banner(rep.verdict, rep.explanation)
@@ -350,13 +393,38 @@ def _render_answer(result, baseline: bool) -> None:
         f"<div class='cr-answer-body'>{formatted_ans}</div>"
         f"</div>"
     )
-    if rep.abstained and result.answer and not baseline:
+    if rep.abstained and result.answer and not (baseline or prompt_only):
         with st.expander("🔍 Inspect withheld LLM draft (suppressed by Gate B)"):
             st.caption(
                 "The generator produced this draft, but Gate B detected unsupported or contradicted "
                 "claims and blocked it from reaching the user."
             )
             st.write(result.answer)
+
+
+def _render_side_by_side(guarded_res, base_res) -> None:
+    st.markdown("##### ⚖️ Live Side-by-Side Comparison: Guarded Pipeline vs. Unguarded Baseline")
+    col_g, col_b = st.columns(2)
+    with col_g:
+        st.markdown("#### 🛡️ Guarded Arm (2-Gate Safety Active)")
+        ui.verdict_banner(guarded_res.confidence.verdict, guarded_res.confidence.explanation)
+        st.html(
+            f"<div class='cr-answer-box'>"
+            f"<div class='cr-answer-hdr'><span>Guarded Output</span>"
+            f"<span>Composite: {guarded_res.confidence.composite:.3f}</span></div>"
+            f"<div class='cr-answer-body'>{ui.format_answer_html(guarded_res.displayed_answer)}</div>"
+            f"</div>"
+        )
+    with col_b:
+        st.markdown("#### ⚠️ Baseline Control Arm (Gates Unforced)")
+        ui.verdict_banner("answer", "Baseline control arm: always answers regardless of Gate A or Gate B failure.")
+        st.html(
+            f"<div class='cr-answer-box'>"
+            f"<div class='cr-answer-hdr'><span>Baseline Output</span>"
+            f"<span>Composite: {base_res.confidence.composite:.3f}</span></div>"
+            f"<div class='cr-answer-body'>{ui.format_answer_html(base_res.displayed_answer)}</div>"
+            f"</div>"
+        )
 
 
 def _tab_scores(rep) -> None:
@@ -430,7 +498,8 @@ def _tab_claims(rep) -> None:
     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
     st.caption(
         "Sentence-level verification following the RAGTruth hallucination taxonomy "
-        f"(scored with `nli_premise='{settings.confidence.nli_premise}'`)."
+        f"(scored with `nli_premise='{settings.confidence.nli_premise}'`, "
+        f"`nli_hypothesis='{settings.confidence.nli_hypothesis}'`)."
     )
     for i, c in enumerate(b.claims, 1):
         icon, label, colour = CLAIM_BADGE[c.taxonomy_label]
@@ -453,10 +522,14 @@ def _tab_claims(rep) -> None:
 
 def _tab_sources(result) -> None:
     a = result.confidence.gate_a
+    b = result.confidence.gate_b
+    supported_claims = [c.claim for c in (b.claims if b else []) if c.is_supported]
+    st.caption("Sentences matching verified claims are highlighted in green.")
     for i, chunk in enumerate(result.retrieval.chunks):
         rel = a.per_chunk_relevance[i] if i < len(a.per_chunk_relevance) else None
         rel_badge = f" · Reranker {rel:.3f}" if rel is not None else ""
-        title = f"Passage #{i + 1} · {Path(chunk.source).name}{rel_badge} · Cosine {chunk.similarity:.3f}"
+        src_name = Path(chunk.source).name if chunk.source != "unknown" else "rag_course_notes.md"
+        title = f"Passage #{i + 1} · {src_name}{rel_badge} · Cosine {chunk.similarity:.3f}"
         with st.expander(title, expanded=i < 2):
             if rel is not None:
                 col = ui.PASS if rel >= settings.confidence.gate_a_threshold else ui.WARN
@@ -464,7 +537,10 @@ def _tab_sources(result) -> None:
                     f"{ui.chip(f'Reranker Relevance: {rel:.3f}', col)} "
                     f"{ui.chip(f'Bi-Encoder Cosine: {chunk.similarity:.3f}', ui.BRAND)}"
                 )
-            st.write(chunk.text)
+            st.html(
+                f"<div style='font-size:0.93rem;line-height:1.65'>"
+                f"{ui.highlight_passage_html(chunk.text, supported_claims)}</div>"
+            )
 
 
 def _tab_details(result) -> None:
@@ -490,7 +566,7 @@ def _tab_details(result) -> None:
     st.caption(
         f"Provider `{settings.llm.provider}` · Model `{settings.llm.generator_model}` · "
         f"Verifier `{settings.confidence.scorer}` · Premise `{settings.confidence.nli_premise}` · "
-        "Persisted to SQLite telemetry (`data/runs.sqlite3`)."
+        f"Hypothesis `{settings.confidence.nli_hypothesis}` · Persisted to SQLite (`data/runs.sqlite3`)."
     )
     a, b = rep.gate_a, rep.gate_b
     if a.llm_reason or (b and b.llm_reason):
@@ -535,15 +611,24 @@ def main() -> None:
     )
 
     question = _ask_form()
-    result = _run(question, opts) if question else None
-    ui.pipeline_strip(result, baseline=opts["baseline"])
+    raw_res = _run(question, opts) if question else None
 
-    if result is None:
+    if raw_res is None:
+        ui.pipeline_strip(None, baseline=opts["baseline"], prompt_only=opts["prompt_only"])
         _intro()
         _index_status(opts["index_slot"])
         return
 
-    _render_answer(result, opts["baseline"])
+    if opts["compare_both"] and isinstance(raw_res, tuple):
+        guarded_res, base_res = raw_res
+        ui.pipeline_strip(guarded_res, baseline=False, prompt_only=False)
+        _render_side_by_side(guarded_res, base_res)
+        primary = guarded_res
+    else:
+        primary = raw_res
+        ui.pipeline_strip(primary, baseline=opts["baseline"], prompt_only=opts["prompt_only"])
+        _render_answer(primary, opts["baseline"], opts["prompt_only"])
+
     t1, t2, t3, t4 = st.tabs(
         [
             "🎯 Confidence Gauges",
@@ -553,13 +638,13 @@ def main() -> None:
         ]
     )
     with t1:
-        _tab_scores(result.confidence)
+        _tab_scores(primary.confidence)
     with t2:
-        _tab_claims(result.confidence)
+        _tab_claims(primary.confidence)
     with t3:
-        _tab_sources(result)
+        _tab_sources(primary)
     with t4:
-        _tab_details(result)
+        _tab_details(primary)
     _index_status(opts["index_slot"])
 
 

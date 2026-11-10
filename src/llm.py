@@ -87,7 +87,7 @@ _BUILDERS = {
 _DEFAULTS: dict[Provider, dict[str, str]] = {
     "ollama": {"generator": "llama3.1:8b", "judge": "gemma2:latest"},
     "groq": {"generator": "llama-3.3-70b-versatile", "judge": "llama-3.1-8b-instant"},
-    "gemini": {"generator": "gemini-3.5-flash", "judge": "gemini-3.5-flash-lite"},
+    "gemini": {"generator": "gemini-2.5-flash", "judge": "gemini-2.5-flash-lite"},
 }
 
 

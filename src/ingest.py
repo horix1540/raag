@@ -111,7 +111,10 @@ def chunk_documents(docs: list[Document]) -> list[Document]:
     pieces: list[Document] = []
     for doc in docs:
         if doc.metadata.get("source", "").lower().endswith(".md"):
-            pieces.extend(_split_markdown_sections(doc.page_content))
+            split_pieces = _split_markdown_sections(doc.page_content)
+            for p in split_pieces:
+                p.metadata = {**doc.metadata, **p.metadata}
+            pieces.extend(split_pieces)
         else:
             pieces.append(doc)
 

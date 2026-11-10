@@ -76,9 +76,11 @@ def build_hypothesis(claim: str, question: str | None, mode: str) -> str:
     was asked for, not something the passage should have to entail. ``claim``
     is left byte-for-byte as v1 so the saved Milestone 2-4 scores reproduce.
     """
-    if mode == "claim" or not question:
+    if mode == "claim":
         return claim
     text = " ".join(_CITATION.sub(" ", claim).split())
+    if mode == "claim_clean" or not question:
+        return text if mode == "claim_clean" else claim
     if mode == "qa_short" and len(text.split()) > SHORT_CLAIM_WORDS:
         return text
     return f"{question.strip()} {text}"
@@ -253,16 +255,21 @@ class NLIScorer:
         # The UI shows the original claim; only the NLI input is rewritten.
         hyps = [build_hypothesis(c, question, mode) for c in claims]
         premises, origin = list(contexts), list(range(len(contexts)))
-        if premise in ("window", "both"):
+        if premise in ("window", "both", "multi_hop"):
             windows = premise_windows(contexts)
             if premise == "window":
                 premises, origin = [], []
-            # A passage short enough to be its own window is already present.
             seen = set(premises)
             for w, o in windows:
                 if w not in seen:
                     premises.append(w)
                     origin.append(o)
+                    seen.add(w)
+            if premise == "multi_hop" and len(contexts) >= 2:
+                pair_premise = f"{contexts[0].strip()} {contexts[1].strip()}"
+                if pair_premise not in seen:
+                    premises.append(pair_premise)
+                    origin.append(0)
         pairs = [(p, hyp) for hyp in hyps for p in premises]
         probs = self._softmax_rows(model.predict(
             pairs, show_progress_bar=False, batch_size=settings.confidence.nli_batch_size))

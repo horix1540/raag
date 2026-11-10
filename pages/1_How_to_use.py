@@ -145,14 +145,16 @@ with try_:
             "Watch whether the generator self-refuses (`INSUFFICIENT_CONTEXT`) or Gate B catches the ungrounded response.",
         ),
         (
-            "Experiment 3 · Guarded vs. Baseline Control Arm",
-            "Toggle 'Baseline control mode' in the sidebar and ask an unanswerable question. "
-            "The scores are still computed, demonstrating the 100% unanswerable hallucination rate of unguarded RAG.",
+            "Experiment 3 · Guarded vs. Prompt-Only vs. Baseline Control Arm (H3 Ablation)",
+            "Select 'Prompt-Only (No Gates · H3 Ablation)' in the sidebar. The system prompt contains the abstention "
+            "instruction and passage citations, but gates are unforced. Compare this against 'Baseline Control' and 'Guarded' "
+            "to measure how much hallucination prevention comes from the prompt alone vs. the two confidence gates.",
         ),
         (
-            "Experiment 4 · Gate B v1 (`passage`) vs. Gate B v2 (`both`)",
+            "Experiment 4 · Gate B v1 (`passage`) vs. Gate B v2 (`both` / `multi_hop`)",
             "Open 'Gate B v2 NLI Settings (M5)' in the sidebar. Compare `passage` mode against `both` "
-            "(passages + 3-sentence windows). Windowing prevents DeBERTa-v3 from going neutral on long paragraphs.",
+            "(passages + 3-sentence windows) or `multi_hop` (which also pairs top-2 passages). Windowing prevents DeBERTa-v3 "
+            "from going neutral on long paragraphs and properly entails synthesized facts.",
         ),
     ]
     for title, body in exps:

@@ -11,7 +11,6 @@ from html import escape
 
 import streamlit as st
 
-# Semantic status palette (WCAG AA compliant on both light and dark surfaces)
 PASS = "#10b981"   # Emerald 500
 FAIL = "#ef4444"   # Rose/Red 500
 SKIP = "#64748b"   # Slate 500
@@ -86,7 +85,6 @@ html, body, [class*="css"] {
     max-width: 1260px !important;
 }
 
-/* Enterprise Hero Header */
 .cr-hero {
     position: relative;
     overflow: hidden;
@@ -151,7 +149,6 @@ html, body, [class*="css"] {
     line-height: 1.5;
 }
 
-/* 5-Stage Pipeline Strip */
 .cr-pipe-wrap {
     margin: 0.95rem 0 1.15rem 0;
 }
@@ -228,7 +225,6 @@ html, body, [class*="css"] {
     width: fit-content;
 }
 
-/* Verdict Banner */
 .cr-verdict {
     border-radius: 14px;
     padding: 1.05rem 1.25rem;
@@ -264,7 +260,6 @@ html, body, [class*="css"] {
     margin-top: 0.35rem;
 }
 
-/* Answer Box & Formatted Citations */
 .cr-answer-box {
     border-radius: 14px;
     padding: 1.15rem 1.35rem;
@@ -302,8 +297,13 @@ html, body, [class*="css"] {
     border: 1px solid rgba(79, 70, 229, 0.3);
     vertical-align: baseline;
 }
+.cr-hl {
+    background: rgba(16, 185, 129, 0.18);
+    border-bottom: 2px solid #10b981;
+    padding: 0.04rem 0.2rem;
+    border-radius: 4px;
+}
 
-/* Threshold Score Gauge Bar */
 .cr-bar {
     padding: 0.85rem 1rem;
     border-radius: 12px;
@@ -364,7 +364,6 @@ html, body, [class*="css"] {
     line-height: 1.4;
 }
 
-/* Badges & Cards */
 .cr-chip {
     display: inline-flex;
     align-items: center;
@@ -400,7 +399,6 @@ html, body, [class*="css"] {
     line-height: 1.5;
 }
 
-/* KPI Metric Card */
 .cr-kpi {
     border: 1px solid rgba(148, 163, 184, 0.25);
     border-radius: 14px;
@@ -427,7 +425,6 @@ html, body, [class*="css"] {
     opacity: 0.8;
 }
 
-/* Equal-height sample question card */
 .cr-sample {
     border: 1px solid rgba(148, 163, 184, 0.26);
     border-radius: 12px;
@@ -512,7 +509,7 @@ def _step(idx: int, title: str, desc: str, state: str | None, note: str = "") ->
     )
 
 
-def pipeline_strip(result=None, baseline: bool = False) -> None:
+def pipeline_strip(result=None, baseline: bool = False, prompt_only: bool = False) -> None:
     """The five pipeline stages, styled as an enterprise telemetry stepper."""
     steps = [
         ("1 · Retrieve", "Bi-encoder top-k vector search"),
@@ -522,6 +519,7 @@ def pipeline_strip(result=None, baseline: bool = False) -> None:
         ("5 · Decide", "Harmonic composite verdict"),
     ]
     states: list[tuple[str | None, str]] = [(None, "awaiting query")] * 5
+    unforced = baseline or prompt_only
     if result is not None:
         rep = result.confidence
         a, b = rep.gate_a, rep.gate_b
@@ -540,17 +538,21 @@ def pipeline_strip(result=None, baseline: bool = False) -> None:
             ("skip", "not run") if b is None else verdict(b.passed, b.score),
             (
                 "pass" if not rep.abstained else "fail",
-                "shown (baseline)"
-                if baseline
+                "shown (unforced)"
+                if (unforced and not rep.abstained)
                 else (f"{rep.composite:.2f} · answered" if not rep.abstained else "abstained"),
             ),
         ]
-        if baseline:
+        if unforced:
             states[1] = ("pass" if a.passed else "warn", f"{a.score:.2f} (unforced)")
             if b is not None:
                 states[3] = ("pass" if b.passed else "warn", f"{b.score:.2f} (unforced)")
 
-    mode_badge = "BASELINE CONTROL ARM (GATES UNFORCED)" if baseline else "GUARDED 2-GATE PIPELINE ACTIVE"
+    mode_badge = (
+        "BASELINE CONTROL ARM (GATES OFF)"
+        if baseline
+        else ("PROMPT-ONLY ARM (H3 ABLATION · GATES UNFORCED)" if prompt_only else "GUARDED 2-GATE PIPELINE ACTIVE")
+    )
     html = (
         f"<div class='cr-pipe-wrap'>"
         f"<div class='cr-pipe-header'><span>Execution Pipeline Telemetry</span>"
@@ -581,6 +583,29 @@ def format_answer_html(text: str) -> str:
     cleaned = re.sub(r"\n+\s*(\[(?:\d+(?:\s*,\s*\d+)*)\])\s*$", r" \1", cleaned)
     cleaned = _CITATION_RE.sub(r"<span class='cr-cite'>Ref \1</span>", cleaned)
     return cleaned
+
+
+def highlight_passage_html(passage: str, claims: list[str]) -> str:
+    """Highlight sentences in a passage that share key content tokens with supported claims."""
+    if not claims:
+        return escape(passage)
+    claim_words = {
+        w.lower()
+        for c in claims
+        for w in re.findall(r"[A-Za-z0-9]{5,}", c)
+        if w.lower() not in {"which", "where", "their", "there", "these", "those", "about", "after", "before"}
+    }
+    if not claim_words:
+        return escape(passage)
+    sents = re.split(r"(?<=[.!?])\s+", passage.strip())
+    out = []
+    for s in sents:
+        s_words = {w.lower() for w in re.findall(r"[A-Za-z0-9]{5,}", s)}
+        if len(s_words & claim_words) >= 2:
+            out.append(f"<span class='cr-hl'>{escape(s)}</span>")
+        else:
+            out.append(escape(s))
+    return " ".join(out)
 
 
 def score_bar(label: str, value: float | None, threshold: float | None, caption: str = "") -> None:
