@@ -1,6 +1,10 @@
-[server]
-fileWatcherType = "none"
-
 [theme]
-# Light/dark follows the viewer's system setting; only the accent is fixed.
-primaryColor = "#4f8cff"
+primaryColor = "#4F46E5"
+backgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0F172A"
+font = "sans serif"
+
+[client]
+showSidebarNavigation = true
+toolbarMode = "minimal"

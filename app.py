@@ -1,11 +1,12 @@
-"""Streamlit front end for the confidence-aware RAG pipeline.
+"""Streamlit front end for the Confidence-Aware RAG Studio.
 
 Run with:  streamlit run app.py
 
 The interface is built around making the confidence decision *visible*. A demo
-that just prints an answer proves nothing; this one shows which stage of the
+that just prints an answer proves nothing; this studio shows which stage of the
 pipeline passed or failed, both gate scores against their thresholds, the
-per-claim entailment breakdown, and why the pipeline chose to answer or abstain.
+per-claim entailment breakdown, Gate B v2 windowing settings, live document
+ingestion, and why the pipeline chose to answer or abstain.
 """
 
 from __future__ import annotations
@@ -18,46 +19,60 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from src import ui  # noqa: E402
-from src.config import ConfidenceConfig, RetrievalConfig, settings  # noqa: E402
+from src.config import RAW_DIR, ConfidenceConfig, RetrievalConfig, settings  # noqa: E402
 
 st.set_page_config(
-    page_title="Confidence-Aware RAG",
+    page_title="Confidence-Aware RAG Studio",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# The calibrated values for "Reset". Read from fresh config objects, not from
-# ``settings``: the sliders write into ``settings``, which outlives a rerun.
 _fresh_conf, _fresh_ret = ConfidenceConfig(), RetrievalConfig()
 CALIBRATED = {
     "gate_a": _fresh_conf.gate_a_threshold,
     "gate_b": _fresh_conf.gate_b_threshold,
     "composite": _fresh_conf.composite_threshold,
     "top_k": _fresh_ret.top_k,
+    "nli_premise": _fresh_conf.nli_premise,
+    "nli_hypothesis": _fresh_conf.nli_hypothesis,
 }
 
-# Each sample demonstrates a different behaviour, and the label says which.
 SAMPLES = [
-    ("Lists", "What are the five stages of a standard RAG pipeline?",
-     "In the notes: should be answered."),
-    ("False alarm", "What is the difference between Baseless Information and Evident Conflict?",
-     "In the notes, yet usually withheld: the NLI checker misreads a correct sentence as a "
-     "contradiction. A known limitation, explained in the guide."),
-    ("Reasoning", "Why can faithfulness only be computed after generation?",
-     "In the notes, but needs explanation rather than lookup."),
-    ("Out of scope", "What is the average annual rainfall in the Amazon basin?",
-     "Not in the notes: Gate A should refuse before the LLM runs."),
+    (
+        "Lists · Grounded Pass",
+        "What are the five stages of a standard RAG pipeline?",
+        "In the notes: passes Gate A (0.50) & Gate B (0.997) -> Answered.",
+        ui.PASS,
+    ),
+    (
+        "False Alarm · NLI Edge Case",
+        "What is the difference between Baseless Information and Evident Conflict?",
+        "In the notes: compare Gate B v1 (passage) vs v2 (3-sentence windows).",
+        ui.WARN,
+    ),
+    (
+        "Reasoning · Multi-Claim",
+        "Why can faithfulness only be computed after generation?",
+        "In the notes: tests multi-sentence explanation & claim verification.",
+        ui.BRAND,
+    ),
+    (
+        "Out of Scope · Gate A Refusal",
+        "What is the average annual rainfall in the Amazon basin?",
+        "Not in the notes: Gate A refuses in ~15 ms before the LLM ever runs.",
+        ui.FAIL,
+    ),
 ]
 
 CLAIM_BADGE = {
-    "supported": ("✅", "Supported", ui.PASS),
-    "evident_conflict": ("❌", "Contradicted", ui.FAIL),
-    "baseless_information": ("⚠️", "Not found in sources", ui.WARN),
+    "supported": ("✅", "Supported (Entailed)", ui.PASS),
+    "evident_conflict": ("❌", "Evident Conflict (Contradicted)", ui.FAIL),
+    "baseless_information": ("⚠️", "Baseless Info (Not in Sources)", ui.WARN),
 }
 
 
-@st.cache_resource(show_spinner="Loading the document index…")
+@st.cache_resource(show_spinner="Loading ChromaDB vector store…")
 def _store(collection: str):
     from src.retriever import get_store
 
@@ -65,7 +80,7 @@ def _store(collection: str):
 
 
 def _reset_thresholds() -> None:
-    for key in ("gate_a", "gate_b", "composite", "top_k"):
+    for key in ("gate_a", "gate_b", "composite", "top_k", "nli_premise", "nli_hypothesis"):
         st.session_state[f"cfg_{key}"] = CALIBRATED[key]
 
 
@@ -73,48 +88,111 @@ def _sidebar() -> dict:
     for key, value in CALIBRATED.items():
         st.session_state.setdefault(f"cfg_{key}", value)
     with st.sidebar:
-        st.page_link("pages/1_How_to_use.py", label="New here? Read the guide", icon="📖")
+        st.markdown("### 🛡️ Navigation")
+        st.page_link("app.py", label="RAG Verification Studio", icon="🛡️")
+        st.page_link("pages/1_How_to_use.py", label="Architecture & Viva Guide", icon="📖")
+        st.page_link("pages/2_Monitoring_Dashboard.py", label="Telemetry & Audit Dashboard", icon="📊")
         st.divider()
 
-        st.subheader("Mode")
+        st.markdown("### ⚙️ Execution Mode")
         baseline = st.toggle(
-            "Baseline mode",
+            "Baseline control mode (unforced)",
             value=False,
-            help="Turns the safety checks off: the gates are still measured and shown, but the "
-                 "answer is always displayed. Use it to see what an ordinary RAG system would say.",
+            help="Turns safety enforcement off: Gate A and Gate B are still measured and displayed, "
+            "but the LLM answer is never withheld. Compare directly against Guarded mode.",
         )
 
-        st.subheader("Models")
+        st.markdown("### 🧠 Model & Gate Backends")
         provider = st.selectbox(
-            "Answer model provider",
+            "Generator LLM provider",
             ["ollama", "groq", "gemini"],
             index=["ollama", "groq", "gemini"].index(settings.llm.provider),
-            help="Ollama runs locally with no rate limits. Groq and Gemini need an API key in .env.",
+            help="Ollama runs locally (llama3.1:8b) with zero rate limits. Groq and Gemini use .env API keys.",
         )
         settings.llm.provider = provider  # type: ignore[assignment]
+
         scorer = st.selectbox(
-            "Confidence checker",
+            "Confidence verifier backend",
             ["nli", "llm", "both"],
             index=["nli", "llm", "both"].index(settings.confidence.scorer),
-            help="nli = fast local models (milliseconds). llm = an LLM judge, much slower. "
-                 "both = run each and compare.",
+            help="nli = fast local cross-encoders (~340 ms). llm = DeepEval judge. both = run & compare both.",
         )
         settings.confidence.scorer = scorer  # type: ignore[assignment]
 
-        with st.expander("Thresholds (advanced)", expanded=False):
-            st.caption("Calibrated on SQuAD 2.0. Changes apply to this session only, "
-                       "on your next question.")
+        with st.expander("🔬 Gate B v2 NLI Settings (M5)", expanded=False):
+            st.caption(
+                "Gate B v2 scores claims against both whole passages and 3-sentence windows "
+                "(cutting SQuAD 2.0 over-abstention from 71% to 48%, p < 0.001)."
+            )
+            premise_opts = ["both", "window", "passage"]
+            premise = st.selectbox(
+                "NLI premise granularity",
+                premise_opts,
+                key="cfg_nli_premise",
+                help="both = Gate B v2 (passages + 3-sentence windows). passage = Gate B v1 (Milestones 1–4).",
+            )
+            settings.confidence.nli_premise = premise
+
+            hyp_opts = ["claim", "qa_short", "qa"]
+            hyp = st.selectbox(
+                "NLI hypothesis construction",
+                hyp_opts,
+                key="cfg_nli_hypothesis",
+                help="claim = raw sentence. qa_short = prefix question on short claims (<= 8 words).",
+            )
+            settings.confidence.nli_hypothesis = hyp
+
+        with st.expander("🎚️ Calibrated Thresholds", expanded=False):
+            st.caption(
+                "Fitted on SQuAD 2.0 dev set (Youden's J for Gate A, F1 above contradiction cap for Gate B)."
+            )
             settings.confidence.gate_a_threshold = st.slider(
-                "Gate A · relevance needed", 0.0, 1.0, step=0.01, key="cfg_gate_a",
-                help="Higher = refuses more questions before generating.")
+                "Gate A · retrieval relevance",
+                0.0,
+                1.0,
+                step=0.01,
+                key="cfg_gate_a",
+                help="Higher = refuses more queries before calling the LLM (calibrated: 0.45).",
+            )
             settings.confidence.gate_b_threshold = st.slider(
-                "Gate B · support needed", 0.0, 1.0, step=0.01, key="cfg_gate_b",
-                help="Higher = withholds more answers that are only partly backed by the sources.")
+                "Gate B · NLI support needed",
+                0.0,
+                1.0,
+                step=0.01,
+                key="cfg_gate_b",
+                help="Higher = withholds more answers with weak passage entailment (calibrated: 0.25).",
+            )
             settings.confidence.composite_threshold = st.slider(
-                "Low-confidence flag below", 0.0, 1.0, step=0.01, key="cfg_composite",
-                help="Answers whose combined score falls below this are shown with a warning.")
-            top_k = st.slider("Passages to retrieve", 1, 12, key="cfg_top_k")
-            st.button("Reset to calibrated values", on_click=_reset_thresholds, use_container_width=True)
+                "Composite low-confidence warning",
+                0.0,
+                1.0,
+                step=0.01,
+                key="cfg_composite",
+                help="Answers below this weighted harmonic mean are flagged (calibrated: 0.33).",
+            )
+            top_k = st.slider("Top-K passages to retrieve", 1, 12, key="cfg_top_k")
+            st.button(
+                "Reset to calibrated defaults",
+                on_click=_reset_thresholds,
+                use_container_width=True,
+            )
+
+        with st.expander("📂 Corpus & Document Upload", expanded=False):
+            st.caption("Upload PDF, DOCX, MD, or TXT files to `data/raw/` and re-index live.")
+            uploaded = st.file_uploader(
+                "Add documents to index",
+                type=["pdf", "docx", "md", "txt"],
+                accept_multiple_files=True,
+            )
+            if uploaded and st.button("Ingest & Rebuild Index", type="primary", use_container_width=True):
+                from src.ingest import build_index
+
+                for uf in uploaded:
+                    (RAW_DIR / uf.name).write_bytes(uf.getvalue())
+                with st.spinner("Chunking & embedding documents into ChromaDB…"):
+                    build_index(RAW_DIR, reset=True)
+                    _store.clear()
+                st.success(f"Indexed {len(uploaded)} new file(s) into '{settings.retrieval.collection_name}'.")
 
         st.divider()
         index_slot = st.empty()
@@ -122,66 +200,96 @@ def _sidebar() -> dict:
 
 
 def _index_status(slot) -> None:
-    """Filled in after the page is drawn: loading the index takes seconds on a cold start."""
     try:
         count = _store(settings.retrieval.collection_name)._collection.count()
         if count:
-            slot.caption(f"📚 {count} passages indexed in '{settings.retrieval.collection_name}'")
+            slot.caption(
+                f"🟢 **{count} passages indexed** in `{settings.retrieval.collection_name}` "
+                f"· Premise `{settings.confidence.nli_premise}`"
+            )
         else:
-            slot.warning("The index is empty. Add files to data/raw/ and run "
-                         "`python scripts/build_index.py --reset`.")
+            slot.warning(
+                "The index is empty. Upload files in the sidebar or run "
+                "`python scripts/build_index.py --reset`."
+            )
     except Exception as exc:  # noqa: BLE001
         slot.error(f"Index unavailable: {exc}")
 
 
 def _ask_form() -> str | None:
-    st.markdown("##### Try a sample question")
+    st.markdown("##### ⚡ Diagnostic Sample Queries")
     for row in (SAMPLES[:2], SAMPLES[2:]):
-        for col, (tag, q, why) in zip(st.columns(2), row, strict=True):
-            with col.container(border=True):
-                st.markdown(f"**{q}**")
-                st.caption(f"{tag} · {why}")
-                if st.button("Ask this →", key=f"sample_{tag}"):
+        cols = st.columns(2)
+        for col, (tag, q, why, colour) in zip(cols, row, strict=True):
+            with col:
+                ui.sample_card(tag, q, why, colour)
+                if st.button(
+                    f"Run diagnostic · {tag.split('·')[0].strip()} →",
+                    key=f"sample_{tag}",
+                    use_container_width=True,
+                ):
                     st.session_state["question"] = q
                     st.session_state["submitted"] = q
 
-    with st.form("ask", clear_on_submit=False, border=False):
+    st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
+    with st.form("ask", clear_on_submit=False, border=True):
         q_col, b_col = st.columns([5, 1], vertical_alignment="bottom")
         question = q_col.text_input(
-            "Or ask your own question about the indexed documents",
+            "Ask a question against the indexed knowledge base",
             key="question",
-            placeholder="e.g. Why does RAG still hallucinate?",
+            placeholder="e.g. Why does RAG still hallucinate even when relevant passages are retrieved?",
         )
-        if b_col.form_submit_button("Ask", type="primary", use_container_width=True):
+        if b_col.form_submit_button("Verify & Ask", type="primary", use_container_width=True):
             st.session_state["submitted"] = question.strip()
     return st.session_state.get("submitted") or None
 
 
 def _run(question: str, opts: dict):
-    """Run the pipeline once per question+settings; the result survives reruns."""
     from src.pipeline import answer_question
 
-    sig = (question, opts["top_k"], opts["baseline"], settings.confidence.gate_a_threshold,
-           settings.confidence.gate_b_threshold, settings.confidence.composite_threshold,
-           settings.llm.provider, settings.confidence.scorer)
+    sig = (
+        question,
+        opts["top_k"],
+        opts["baseline"],
+        settings.confidence.gate_a_threshold,
+        settings.confidence.gate_b_threshold,
+        settings.confidence.composite_threshold,
+        settings.llm.provider,
+        settings.confidence.scorer,
+        settings.confidence.nli_premise,
+        settings.confidence.nli_hypothesis,
+    )
     cached = st.session_state.get("last")
     if cached and cached[0] == sig:
         return cached[1]
 
-    with st.status("Working on it…", expanded=True) as status:
-        st.write("Retrieving passages, checking relevance (Gate A), generating, "
-                 "checking support (Gate B)…")
-        st.caption("The first question after starting the app is slow while the models load.")
+    with st.status("Executing two-gate confidence pipeline…", expanded=True) as status:
+        st.write(
+            "1. Retrieving top-k chunks via MiniLM bi-encoder\n"
+            "2. Evaluating Gate A cross-encoder relevance (`ms-marco-MiniLM-L-6-v2`)\n"
+            "3. Generating context-constrained answer & running Gate B DeBERTa NLI verification…"
+        )
+        st.caption("Cold start loads local transformer weights onto GPU/CPU; subsequent queries run in milliseconds.")
         try:
-            result = answer_question(question, top_k=opts["top_k"], baseline=opts["baseline"],
-                                     store=_store(settings.retrieval.collection_name))
+            result = answer_question(
+                question,
+                top_k=opts["top_k"],
+                baseline=opts["baseline"],
+                store=_store(settings.retrieval.collection_name),
+            )
         except Exception as exc:  # noqa: BLE001
-            status.update(label="The pipeline failed", state="error")
+            status.update(label="Pipeline execution failed", state="error")
             st.error(f"{type(exc).__name__}: {exc}")
-            st.info("Is Ollama running? Start it, then ask again. See the guide's "
-                    "Troubleshooting section.")
+            st.info(
+                "Ensure Ollama is running (`ollama serve` and `ollama pull llama3.1:8b`), "
+                "or switch provider to Groq/Gemini in the sidebar."
+            )
             return None
-        status.update(label=f"Done in {result.total_ms / 1000:.1f} s", state="complete", expanded=False)
+        status.update(
+            label=f"Completed in {result.total_ms / 1000:.2f} s · Verdict: {result.verdict}",
+            state="complete",
+            expanded=False,
+        )
     st.session_state["last"] = (sig, result)
     return result
 
@@ -189,125 +297,242 @@ def _run(question: str, opts: dict):
 def _render_answer(result, baseline: bool) -> None:
     rep = result.confidence
     if baseline:
-        ui.verdict_banner("answer", "Baseline mode: the gates were measured but not enforced.")
+        ui.verdict_banner(
+            "answer",
+            f"Baseline control arm active: gates were measured (Composite {rep.composite:.2f}) but not enforced.",
+        )
     else:
         ui.verdict_banner(rep.verdict, rep.explanation)
 
-    with st.container(border=True):
-        st.markdown("**Answer**")
-        st.write(result.displayed_answer)
-        if rep.abstained and result.answer and not baseline:
-            with st.expander("Show the answer that was withheld"):
-                st.caption("The model did produce this, but the checks judged it unsafe to show.")
-                st.write(result.answer)
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        ui.kpi_card(
+            "Gate A · Relevance",
+            f"{rep.gate_a.score:.3f}",
+            f"Threshold ≥ {settings.confidence.gate_a_threshold:.2f}",
+            ui.PASS if rep.gate_a.passed else ui.FAIL,
+        )
+    with k2:
+        gb_val = f"{rep.gate_b.score:.3f}" if rep.gate_b else "Skipped"
+        gb_col = (ui.PASS if rep.gate_b.passed else ui.FAIL) if rep.gate_b else ui.SKIP
+        ui.kpi_card(
+            "Gate B · Faithfulness",
+            gb_val,
+            f"Threshold ≥ {settings.confidence.gate_b_threshold:.2f} ({settings.confidence.nli_premise})",
+            gb_col,
+        )
+    with k3:
+        comp_col = (
+            ui.PASS
+            if not rep.abstained and rep.composite >= settings.confidence.composite_threshold
+            else (ui.WARN if not rep.abstained else ui.FAIL)
+        )
+        ui.kpi_card(
+            "Harmonic Composite",
+            f"{rep.composite:.3f}",
+            f"Weights 0.4 A / 0.6 B (≥ {settings.confidence.composite_threshold:.2f})",
+            comp_col,
+        )
+    with k4:
+        ui.kpi_card(
+            "End-to-End Latency",
+            f"{result.total_ms / 1000:.2f} s",
+            f"Gates: {(rep.gate_a.latency_ms + (rep.gate_b.latency_ms if rep.gate_b else 0.0)):.0f} ms total",
+            ui.BRAND,
+        )
+
+    st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
+    formatted_ans = ui.format_answer_html(result.displayed_answer)
+    st.html(
+        f"<div class='cr-answer-box'>"
+        f"<div class='cr-answer-hdr'><span>System Response</span>"
+        f"<span>Model: {settings.llm.provider}:{settings.llm.generator_model}</span></div>"
+        f"<div class='cr-answer-body'>{formatted_ans}</div>"
+        f"</div>"
+    )
+    if rep.abstained and result.answer and not baseline:
+        with st.expander("🔍 Inspect withheld LLM draft (suppressed by Gate B)"):
+            st.caption(
+                "The generator produced this draft, but Gate B detected unsupported or contradicted "
+                "claims and blocked it from reaching the user."
+            )
+            st.write(result.answer)
 
 
 def _tab_scores(rep) -> None:
     a, b = rep.gate_a, rep.gate_b
-    ui.score_bar("Gate A · how relevant are the retrieved passages?", a.score,
-                 settings.confidence.gate_a_threshold,
-                 "Cross-encoder reranker, average of the top two passages. Checked before generating.")
-    ui.score_bar("Gate B · how well do the sources support the answer?", b.score if b else None,
-                 settings.confidence.gate_b_threshold,
-                 "NLI model, average support across the answer's sentences. A contradicted "
-                 "sentence caps this at 0.15." if b else "Not run: no answer was generated.")
-    ui.score_bar("Combined confidence (weighted harmonic mean)", rep.composite,
-                 settings.confidence.composite_threshold,
-                 "Pulled down hard by whichever gate is weaker, so good retrieval cannot hide a bad answer.")
-    with st.expander("Raw retrieval signals"):
+    ui.score_bar(
+        "Gate A · Pre-Generation Retrieval Sufficiency (ms-marco-MiniLM-L-6-v2)",
+        a.score,
+        settings.confidence.gate_a_threshold,
+        "Mean sigmoid relevance of top-2 retrieved passages. Evaluated before calling the LLM.",
+    )
+    ui.score_bar(
+        f"Gate B · Post-Generation Claim Groundedness (DeBERTa-v3 NLI · premise='{settings.confidence.nli_premise}')",
+        b.score if b else None,
+        settings.confidence.gate_b_threshold,
+        "Mean entailment probability across extracted answer sentences. Any Evident Conflict caps this at 0.15."
+        if b
+        else "Not run: generation was skipped at Gate A or the model self-refused.",
+    )
+    ui.score_bar(
+        "Composite Confidence · Weighted Harmonic Mean (0.4 Gate A + 0.6 Gate B)",
+        rep.composite,
+        settings.confidence.composite_threshold,
+        "Dominated by whichever gate is weaker so strong retrieval cannot mask an ungrounded generation.",
+    )
+    with st.expander("📊 Raw Retrieval & Embedding Diagnostic Signals", expanded=True):
         st.dataframe(
             {
-                "signal": ["reranker relevance (drives Gate A)", "top embedding similarity",
-                           "mean embedding similarity", "similarity margin (top 1 - top 2)"],
-                "value": [round(a.rerank_relevancy, 4), round(a.top_similarity, 4),
-                          round(a.mean_similarity, 4), round(a.similarity_margin, 4)],
+                "Diagnostic Signal": [
+                    "Cross-encoder reranker relevance (drives Gate A)",
+                    "Top-1 passage cosine similarity (all-MiniLM-L6-v2)",
+                    "Mean top-k cosine similarity",
+                    "Similarity margin (Top 1 − Top 2)",
+                ],
+                "Measured Value": [
+                    round(a.rerank_relevancy, 4),
+                    round(a.top_similarity, 4),
+                    round(a.mean_similarity, 4),
+                    round(a.similarity_margin, 4),
+                ],
+                "Role in Pipeline": [
+                    "Primary calibrated decision signal (AUC 0.652)",
+                    "Diagnostic telemetry (uncalibrated cosine scale)",
+                    "Corpus density indicator",
+                    "Hit concentration indicator",
+                ],
             },
-            hide_index=True, use_container_width=True,
+            hide_index=True,
+            use_container_width=True,
         )
-        st.caption("Embedding similarity is logged for analysis but does not drive the gate: "
-                   "MiniLM cosine values are not calibrated probabilities.")
 
 
 def _tab_claims(rep) -> None:
     b = rep.gate_b
     if b is None or not b.claims:
-        st.info("No claims to check: the pipeline stopped before an answer was generated.")
+        st.info("No claims were evaluated because the pipeline abstained before generation.")
         return
     counts = b.taxonomy_counts
     c1, c2, c3 = st.columns(3)
-    c1.metric("Supported", counts["supported"])
-    c2.metric("Not found in sources", counts["baseless_information"])
-    c3.metric("Contradicted", counts["evident_conflict"])
-    st.caption("Each sentence of the answer is checked against the passages "
-               "(RAGTruth labels: supported, baseless information, evident conflict).")
+    with c1:
+        ui.kpi_card("Supported Claims", str(counts["supported"]), "Entailment ≥ 0.50", ui.PASS)
+    with c2:
+        ui.kpi_card("Baseless Information", str(counts["baseless_information"]), "Entailment < 0.50", ui.WARN)
+    with c3:
+        ui.kpi_card(
+            "Evident Conflict",
+            str(counts["evident_conflict"]),
+            "Contradiction ≥ 0.50 (Caps Gate B at 0.15)",
+            ui.FAIL,
+        )
+
+    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+    st.caption(
+        "Sentence-level verification following the RAGTruth hallucination taxonomy "
+        f"(scored with `nli_premise='{settings.confidence.nli_premise}'`)."
+    )
     for i, c in enumerate(b.claims, 1):
         icon, label, colour = CLAIM_BADGE[c.taxonomy_label]
         with st.container(border=True):
-            st.html(f"{ui.chip(label, colour)} <span style='opacity:.7;font-size:.8rem'>"
-                    f"sentence {i} · best support from passage {c.best_context_index + 1}</span>")
-            st.markdown(f"{icon} {c.claim}")
-            st.progress(min(max(c.entailment, 0.0), 1.0),
-                        text=f"support {c.entailment:.2f} · neutral {c.neutral:.2f} · "
-                             f"contradiction {c.contradiction:.2f}")
+            st.html(
+                f"{ui.chip(label, colour)} "
+                f"<span style='opacity:.75;font-size:.8rem;font-family:JetBrains Mono,monospace'>"
+                f"Claim #{i} · Best match: Passage #{c.best_context_index + 1}</span>"
+            )
+            st.markdown(f"**{icon} {c.claim}**")
+            st.progress(
+                min(max(c.entailment, 0.0), 1.0),
+                text=(
+                    f"Entailment (Support): {c.entailment:.3f}  |  "
+                    f"Neutral: {c.neutral:.3f}  |  "
+                    f"Contradiction: {c.contradiction:.3f}"
+                ),
+            )
 
 
 def _tab_sources(result) -> None:
     a = result.confidence.gate_a
     for i, chunk in enumerate(result.retrieval.chunks):
         rel = a.per_chunk_relevance[i] if i < len(a.per_chunk_relevance) else None
-        title = f"Passage {i + 1} · {Path(chunk.source).name}"
-        if rel is not None:
-            title += f" · relevance {rel:.2f}"
-        with st.expander(title, expanded=i == 0):
+        rel_badge = f" · Reranker {rel:.3f}" if rel is not None else ""
+        title = f"Passage #{i + 1} · {Path(chunk.source).name}{rel_badge} · Cosine {chunk.similarity:.3f}"
+        with st.expander(title, expanded=i < 2):
+            if rel is not None:
+                col = ui.PASS if rel >= settings.confidence.gate_a_threshold else ui.WARN
+                st.html(
+                    f"{ui.chip(f'Reranker Relevance: {rel:.3f}', col)} "
+                    f"{ui.chip(f'Bi-Encoder Cosine: {chunk.similarity:.3f}', ui.BRAND)}"
+                )
             st.write(chunk.text)
-            st.caption(f"embedding similarity {chunk.similarity:.3f}")
 
 
 def _tab_details(result) -> None:
     rep = result.confidence
-    rows = [("Retrieval", result.retrieval_ms), ("Gate A", rep.gate_a.latency_ms)]
+    rows = [
+        ("1 · Vector Retrieval (Chroma + MiniLM)", result.retrieval_ms),
+        ("2 · Gate A Reranker", rep.gate_a.latency_ms),
+    ]
     if result.generation:
-        rows.append(("Generation", result.generation.latency_ms))
+        rows.append(("3 · LLM Generation", result.generation.latency_ms))
     if rep.gate_b:
-        rows.append(("Gate B", rep.gate_b.latency_ms))
-    rows.append(("Total", result.total_ms))
-    st.dataframe({"stage": [r[0] for r in rows], "milliseconds": [round(r[1]) for r in rows]},
-                 hide_index=True, use_container_width=True)
-    st.caption(f"Provider {settings.llm.provider} · model {settings.llm.generator_model} · "
-               f"checker {settings.confidence.scorer} · logged to the Monitoring Dashboard.")
+        rows.append(("4 · Gate B DeBERTa NLI", rep.gate_b.latency_ms))
+    rows.append(("Total Pipeline Wall Time", result.total_ms))
+    st.dataframe(
+        {
+            "Pipeline Stage": [r[0] for r in rows],
+            "Latency (ms)": [round(r[1], 1) for r in rows],
+            "Share (%)": [round((r[1] / max(result.total_ms, 0.1)) * 100, 1) for r in rows],
+        },
+        hide_index=True,
+        use_container_width=True,
+    )
+    st.caption(
+        f"Provider `{settings.llm.provider}` · Model `{settings.llm.generator_model}` · "
+        f"Verifier `{settings.confidence.scorer}` · Premise `{settings.confidence.nli_premise}` · "
+        "Persisted to SQLite telemetry (`data/runs.sqlite3`)."
+    )
     a, b = rep.gate_a, rep.gate_b
     if a.llm_reason or (b and b.llm_reason):
-        st.markdown("**LLM judge reasoning**")
+        st.markdown("##### DeepEval LLM Judge Reasoning")
         if a.llm_relevancy is not None:
-            st.write(f"Contextual relevancy {a.llm_relevancy:.3f}: {a.llm_reason}")
+            st.write(f"**Contextual Relevancy ({a.llm_relevancy:.3f}):** {a.llm_reason}")
         if b is not None and b.llm_faithfulness is not None:
-            st.write(f"Faithfulness {b.llm_faithfulness:.3f}: {b.llm_reason}")
+            st.write(f"**Faithfulness ({b.llm_faithfulness:.3f}):** {b.llm_reason}")
 
 
 def _intro() -> None:
-    st.markdown("##### How it works")
+    st.markdown("##### 🏗️ Two-Gate Selective Prediction Architecture")
     c1, c2, c3 = st.columns(3)
     with c1:
-        ui.card("1 · Check before answering",
-                "Gate A asks whether the retrieved passages are relevant at all. If not, the "
-                "system says so instead of letting the model guess.")
+        ui.card(
+            "1 · Pre-Generation Gate A (Sufficiency)",
+            "Scores query-passage relevance via ms-marco-MiniLM-L-6-v2 before calling the LLM. "
+            "Out-of-scope queries abstain in ~15 ms with zero LLM token cost.",
+        )
     with c2:
-        ui.card("2 · Check after answering",
-                "Gate B tests every sentence of the answer against the passages and flags "
-                "anything unsupported or contradicted.")
+        ui.card(
+            "2 · Post-Generation Gate B v2 (Groundedness)",
+            "Splits the generated answer into atomic sentences and tests NLI entailment against "
+            "retrieved passages + 3-sentence windows using DeBERTa-v3.",
+        )
     with c3:
-        ui.card("3 · Answer or abstain",
-                "Only answers that pass both checks are shown. Everything else is withheld, "
-                "with the reason and the evidence.")
+        ui.card(
+            "3 · Harmonic Composite & RAGTruth Audit",
+            "Combines Gate A (0.4) and Gate B (0.6) via a weighted harmonic mean and applies a "
+            "hard contradiction veto (0.15 cap) on any Evident Conflict.",
+        )
 
 
 def main() -> None:
     ui.inject_css()
     opts = _sidebar()
 
-    ui.hero("🛡️ Confidence-Aware RAG",
-            "Ask a question about your documents. The system answers only when it can show "
-            "the sources support it, and tells you why when it can't.")
+    ui.hero(
+        "Confidence-Aware RAG Studio",
+        "Selective retrieval-augmented generation with inline pre-generation relevance gating, "
+        "post-generation DeBERTa NLI claim verification, and SQLite telemetry.",
+    )
 
     question = _ask_form()
     result = _run(question, opts) if question else None
@@ -319,7 +544,14 @@ def main() -> None:
         return
 
     _render_answer(result, opts["baseline"])
-    t1, t2, t3, t4 = st.tabs(["Confidence scores", "Claim check", "Sources", "Timing & details"])
+    t1, t2, t3, t4 = st.tabs(
+        [
+            "🎯 Confidence Gauges",
+            "🔬 Claim-Level NLI Check",
+            "📚 Retrieved Passages",
+            "⏱️ Latency & Telemetry",
+        ]
+    )
     with t1:
         _tab_scores(result.confidence)
     with t2:
