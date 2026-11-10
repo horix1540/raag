@@ -1,0 +1,36 @@
+# --- Secrets ---------------------------------------------------------------
+.env
+*.key
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# --- Large / generated artefacts -------------------------------------------
+# The vector store is rebuildable from data/raw via scripts/build_index.py.
+data/chroma/
+data/runs.sqlite3
+data/benchmarks/*.json
+data/benchmarks/*.jsonl
+.wheels/
+*.log
+
+# Derived from the .docx by Word; regenerate rather than track.
+reports/*.pdf
+reports/_page*.png
+
+# Hugging Face model cache, if it ever lands inside the repo.
+.cache/
+models/
+
+# --- Editors / OS ----------------------------------------------------------
+.vscode/
+.idea/
+.zcode/
+Thumbs.db
+desktop.ini

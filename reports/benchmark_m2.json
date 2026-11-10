@@ -1,0 +1,76 @@
+{
+  "run_tag": "squad2-dev",
+  "n_rows": 300,
+  "arms": {
+    "guarded": {
+      "n": 150,
+      "n_answerable": 75,
+      "n_unanswerable": 75,
+      "answered": 15,
+      "abstained": 135,
+      "abstention_rate": 0.9,
+      "hallucination_rate": 0.04,
+      "over_abstention_rate": 0.84,
+      "em": 0.48,
+      "f1": 0.5086,
+      "em_answerable": 0.0,
+      "f1_answerable": 0.0572,
+      "em_unanswerable": 0.96,
+      "f1_unanswerable": 0.96,
+      "mean_latency_ms": 3624.4,
+      "verdicts": {
+        "abstain_no_context": 78,
+        "abstain_ungrounded": 57,
+        "answer": 15
+      },
+      "confusion": {
+        "unanswerable": {
+          "n": 75,
+          "answered": 3,
+          "abstained": 72,
+          "mean_f1": 0.96
+        },
+        "answerable": {
+          "n": 75,
+          "answered": 12,
+          "abstained": 63,
+          "mean_f1": 0.0572
+        }
+      }
+    },
+    "baseline": {
+      "n": 150,
+      "n_answerable": 75,
+      "n_unanswerable": 75,
+      "answered": 150,
+      "abstained": 0,
+      "abstention_rate": 0.0,
+      "hallucination_rate": 1.0,
+      "over_abstention_rate": 0.0,
+      "em": 0.1267,
+      "f1": 0.2489,
+      "em_answerable": 0.2533,
+      "f1_answerable": 0.4978,
+      "em_unanswerable": 0.0,
+      "f1_unanswerable": 0.0,
+      "mean_latency_ms": 6395.8,
+      "verdicts": {
+        "answer": 150
+      },
+      "confusion": {
+        "unanswerable": {
+          "n": 75,
+          "answered": 75,
+          "abstained": 0,
+          "mean_f1": 0.0
+        },
+        "answerable": {
+          "n": 75,
+          "answered": 75,
+          "abstained": 0,
+          "mean_f1": 0.4978
+        }
+      }
+    }
+  }
+}

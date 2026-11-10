@@ -1,0 +1,410 @@
+{
+  "run_tag": "squad2-v2",
+  "gate_a": {
+    "n": 150,
+    "signal": "rerank_relevancy",
+    "roc_auc": 0.6525,
+    "chosen": {
+      "threshold": 0.45,
+      "tp": 60,
+      "fp": 42,
+      "fn": 15,
+      "precision": 0.5882,
+      "recall": 0.8,
+      "f1": 0.678,
+      "youden_j": 0.24
+    },
+    "sweep": [
+      {
+        "threshold": 0.05,
+        "tp": 72,
+        "fp": 62,
+        "fn": 3,
+        "precision": 0.5373,
+        "recall": 0.96,
+        "f1": 0.689,
+        "youden_j": 0.1333
+      },
+      {
+        "threshold": 0.1,
+        "tp": 70,
+        "fp": 60,
+        "fn": 5,
+        "precision": 0.5385,
+        "recall": 0.9333,
+        "f1": 0.6829,
+        "youden_j": 0.1333
+      },
+      {
+        "threshold": 0.15,
+        "tp": 69,
+        "fp": 59,
+        "fn": 6,
+        "precision": 0.5391,
+        "recall": 0.92,
+        "f1": 0.6798,
+        "youden_j": 0.1333
+      },
+      {
+        "threshold": 0.2,
+        "tp": 68,
+        "fp": 59,
+        "fn": 7,
+        "precision": 0.5354,
+        "recall": 0.9067,
+        "f1": 0.6733,
+        "youden_j": 0.12
+      },
+      {
+        "threshold": 0.25,
+        "tp": 68,
+        "fp": 59,
+        "fn": 7,
+        "precision": 0.5354,
+        "recall": 0.9067,
+        "f1": 0.6733,
+        "youden_j": 0.12
+      },
+      {
+        "threshold": 0.3,
+        "tp": 65,
+        "fp": 55,
+        "fn": 10,
+        "precision": 0.5417,
+        "recall": 0.8667,
+        "f1": 0.6667,
+        "youden_j": 0.1333
+      },
+      {
+        "threshold": 0.35,
+        "tp": 63,
+        "fp": 51,
+        "fn": 12,
+        "precision": 0.5526,
+        "recall": 0.84,
+        "f1": 0.6667,
+        "youden_j": 0.16
+      },
+      {
+        "threshold": 0.4,
+        "tp": 63,
+        "fp": 51,
+        "fn": 12,
+        "precision": 0.5526,
+        "recall": 0.84,
+        "f1": 0.6667,
+        "youden_j": 0.16
+      },
+      {
+        "threshold": 0.45,
+        "tp": 60,
+        "fp": 42,
+        "fn": 15,
+        "precision": 0.5882,
+        "recall": 0.8,
+        "f1": 0.678,
+        "youden_j": 0.24
+      },
+      {
+        "threshold": 0.5,
+        "tp": 3,
+        "fp": 2,
+        "fn": 72,
+        "precision": 0.6,
+        "recall": 0.04,
+        "f1": 0.075,
+        "youden_j": 0.0133
+      },
+      {
+        "threshold": 0.55,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.6,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.65,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.7,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.75,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.8,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.85,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.9,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      },
+      {
+        "threshold": 0.95,
+        "tp": 0,
+        "fp": 0,
+        "fn": 75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "youden_j": 0.0
+      }
+    ],
+    "logistic_fit": {
+      "features": [
+        "rerank_relevancy",
+        "top_similarity",
+        "mean_similarity",
+        "similarity_margin"
+      ],
+      "coef": [
+        0.8216,
+        1.1148,
+        0.3004,
+        1.1093
+      ],
+      "intercept": -1.3936,
+      "cv_roc_auc": 0.6729
+    }
+  },
+  "gate_b": {
+    "n": 150,
+    "signal": "nli_faithfulness",
+    "label": "answerable-as-grounded proxy (baseline arm)",
+    "contradiction_cap_respected": true,
+    "roc_auc": 0.5935,
+    "chosen": {
+      "threshold": 0.25,
+      "tp": 31,
+      "fp": 23,
+      "fn": 44,
+      "precision": 0.5741,
+      "recall": 0.4133,
+      "f1": 0.4806,
+      "youden_j": null
+    },
+    "sweep": [
+      {
+        "threshold": 0.2,
+        "tp": 31,
+        "fp": 24,
+        "fn": 44,
+        "precision": 0.5636,
+        "recall": 0.4133,
+        "f1": 0.4769,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.25,
+        "tp": 31,
+        "fp": 23,
+        "fn": 44,
+        "precision": 0.5741,
+        "recall": 0.4133,
+        "f1": 0.4806,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.3,
+        "tp": 30,
+        "fp": 22,
+        "fn": 45,
+        "precision": 0.5769,
+        "recall": 0.4,
+        "f1": 0.4724,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.35,
+        "tp": 29,
+        "fp": 21,
+        "fn": 46,
+        "precision": 0.58,
+        "recall": 0.3867,
+        "f1": 0.464,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.4,
+        "tp": 25,
+        "fp": 21,
+        "fn": 50,
+        "precision": 0.5435,
+        "recall": 0.3333,
+        "f1": 0.4132,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.45,
+        "tp": 25,
+        "fp": 21,
+        "fn": 50,
+        "precision": 0.5435,
+        "recall": 0.3333,
+        "f1": 0.4132,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.5,
+        "tp": 25,
+        "fp": 17,
+        "fn": 50,
+        "precision": 0.5952,
+        "recall": 0.3333,
+        "f1": 0.4274,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.55,
+        "tp": 25,
+        "fp": 15,
+        "fn": 50,
+        "precision": 0.625,
+        "recall": 0.3333,
+        "f1": 0.4348,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.6,
+        "tp": 24,
+        "fp": 15,
+        "fn": 51,
+        "precision": 0.6154,
+        "recall": 0.32,
+        "f1": 0.4211,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.65,
+        "tp": 23,
+        "fp": 14,
+        "fn": 52,
+        "precision": 0.6216,
+        "recall": 0.3067,
+        "f1": 0.4107,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.7,
+        "tp": 23,
+        "fp": 12,
+        "fn": 52,
+        "precision": 0.6571,
+        "recall": 0.3067,
+        "f1": 0.4182,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.75,
+        "tp": 22,
+        "fp": 12,
+        "fn": 53,
+        "precision": 0.6471,
+        "recall": 0.2933,
+        "f1": 0.4037,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.8,
+        "tp": 22,
+        "fp": 11,
+        "fn": 53,
+        "precision": 0.6667,
+        "recall": 0.2933,
+        "f1": 0.4074,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.85,
+        "tp": 19,
+        "fp": 10,
+        "fn": 56,
+        "precision": 0.6552,
+        "recall": 0.2533,
+        "f1": 0.3654,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.9,
+        "tp": 19,
+        "fp": 10,
+        "fn": 56,
+        "precision": 0.6552,
+        "recall": 0.2533,
+        "f1": 0.3654,
+        "youden_j": null
+      },
+      {
+        "threshold": 0.95,
+        "tp": 18,
+        "fp": 10,
+        "fn": 57,
+        "precision": 0.6429,
+        "recall": 0.24,
+        "f1": 0.3495,
+        "youden_j": null
+      }
+    ]
+  },
+  "recommended": {
+    "gate_a_threshold": 0.45,
+    "gate_b_threshold": 0.25,
+    "composite_threshold": 0.3345
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "bench": "C:\\Users\\OMEN\\Desktop\\cornerstone\\data\\benchmarks\\hotpot_dev_150.jsonl",
+  "n_items": 150,
+  "llm_model": "llama3.1:8b",
+  "sentence_baseline": {
+    "n": 150,
+    "exact_match": 0.0867,
+    "f1": 0.1884,
+    "answer_rate": 1.0,
+    "hallucination_rate": 0.9133,
+    "over_abstention_rate": 0.0,
+    "gate_b_contradiction_rate": 0.7467,
+    "mean_rerank_relevancy": 0.8182,
+    "mean_nli_faithfulness": 0.2619,
+    "sweep_seconds": 271.9
+  },
+  "sentence_guarded": {
+    "n": 150,
+    "exact_match": 0.0,
+    "f1": 0.0864,
+    "answer_rate": 0.1667,
+    "hallucination_rate": 0.1667,
+    "over_abstention_rate": 0.7,
+    "gate_b_contradiction_rate": 0.24,
+    "mean_rerank_relevancy": 0.8182,
+    "mean_nli_faithfulness": 0.4021,
+    "sweep_seconds": 161.0
+  },
+  "chunk_baseline": {
+    "n": 150,
+    "exact_match": 0.1067,
+    "f1": 0.2706,
+    "answer_rate": 1.0,
+    "hallucination_rate": 0.8933,
+    "over_abstention_rate": 0.0,
+    "gate_b_contradiction_rate": 0.7067,
+    "mean_rerank_relevancy": 0.8445,
+    "mean_nli_faithfulness": 0.286,
+    "sweep_seconds": 360.9
+  },
+  "chunk_guarded": {
+    "n": 150,
+    "exact_match": 0.0,
+    "f1": 0.1501,
+    "answer_rate": 0.22,
+    "hallucination_rate": 0.22,
+    "over_abstention_rate": 0.7667,
+    "gate_b_contradiction_rate": 0.3867,
+    "mean_rerank_relevancy": 0.8445,
+    "mean_nli_faithfulness": 0.3612,
+    "sweep_seconds": 622.3
+  }
+}

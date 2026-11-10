@@ -1,0 +1,21 @@
+{
+  "run_tag": "squad2-v2",
+  "arms": {
+    "guarded": {
+      "n": 150,
+      "aurc": 0.6345,
+      "risk_at_50pct_coverage": 0.48,
+      "risk_at_80pct_coverage": 0.55,
+      "coverage_at_10pct_risk": 0.0,
+      "accuracy_full_coverage": 0.4467
+    },
+    "baseline": {
+      "n": 150,
+      "aurc": 0.8661,
+      "risk_at_50pct_coverage": 0.84,
+      "risk_at_80pct_coverage": 0.8729,
+      "coverage_at_10pct_risk": 0.0,
+      "accuracy_full_coverage": 0.1267
+    }
+  }
+}

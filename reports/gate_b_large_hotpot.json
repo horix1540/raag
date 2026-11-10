@@ -1,0 +1,72 @@
+{
+  "hotpot": {
+    "chunk": {
+      "n": 150,
+      "reproduction": {
+        "n": 150,
+        "within_0.01": 52,
+        "max_abs_diff": 0.993
+      },
+      "v1": {
+        "gate_b_auroc": 0.5532,
+        "fail_rate_on_correct_at_0.25": {
+          "k": 43,
+          "n": 89,
+          "rate": 0.4831,
+          "ci95": [
+            0.3822,
+            0.5855
+          ]
+        },
+        "fail_rate_on_incorrect_at_0.25": {
+          "k": 37,
+          "n": 61,
+          "rate": 0.6066,
+          "ci95": [
+            0.4812,
+            0.7193
+          ]
+        },
+        "contradiction_rate": {
+          "k": 70,
+          "n": 150,
+          "rate": 0.4667,
+          "ci95": [
+            0.3887,
+            0.5463
+          ]
+        }
+      },
+      "both": {
+        "gate_b_auroc": 0.566,
+        "fail_rate_on_correct_at_0.25": {
+          "k": 37,
+          "n": 89,
+          "rate": 0.4157,
+          "ci95": [
+            0.3189,
+            0.5195
+          ]
+        },
+        "fail_rate_on_incorrect_at_0.25": {
+          "k": 35,
+          "n": 61,
+          "rate": 0.5738,
+          "ci95": [
+            0.449,
+            0.6898
+          ]
+        },
+        "contradiction_rate": {
+          "k": 67,
+          "n": 150,
+          "rate": 0.4467,
+          "ci95": [
+            0.3694,
+            0.5266
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+[server]
+fileWatcherType = "none"
+
+[theme]
+# Light/dark follows the viewer's system setting; only the accent is fixed.
+primaryColor = "#4f8cff"

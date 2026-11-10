@@ -1,0 +1,241 @@
+{
+  "squad": {
+    "reproduction": {
+      "n": 222,
+      "within_0.01": 208,
+      "max_abs_diff": 0.8474
+    },
+    "detection": {
+      "v1": {
+        "gate_b_auroc_all": 0.5593,
+        "gate_b_auroc_answerable_only": 0.3393,
+        "composite_auroc_all": 0.5866,
+        "gate_b_fail_rate_on_correct_at_0.25": {
+          "k": 44,
+          "n": 68,
+          "rate": 0.6471,
+          "ci95": [
+            0.5284,
+            0.75
+          ]
+        },
+        "gate_b_fail_rate_on_incorrect_at_0.25": {
+          "k": 59,
+          "n": 82,
+          "rate": 0.7195,
+          "ci95": [
+            0.6141,
+            0.8052
+          ]
+        }
+      },
+      "both": {
+        "gate_b_auroc_all": 0.6523,
+        "gate_b_auroc_answerable_only": 0.3824,
+        "composite_auroc_all": 0.6626,
+        "gate_b_fail_rate_on_correct_at_0.25": {
+          "k": 28,
+          "n": 68,
+          "rate": 0.4118,
+          "ci95": [
+            0.3026,
+            0.5304
+          ]
+        },
+        "gate_b_fail_rate_on_incorrect_at_0.25": {
+          "k": 55,
+          "n": 82,
+          "rate": 0.6707,
+          "ci95": [
+            0.5634,
+            0.7628
+          ]
+        }
+      }
+    },
+    "guarded_fixed_threshold": {
+      "v1": {
+        "answerable": {
+          "reached_gate_b": 57,
+          "answered": 21,
+          "answered_correct": 20,
+          "suppressed": 36,
+          "suppressed_but_correct": 35,
+          "over_abstention": {
+            "k": 54,
+            "n": 75,
+            "rate": 0.72,
+            "ci95": [
+              0.6096,
+              0.809
+            ]
+          },
+          "answered_correct_rate": {
+            "k": 20,
+            "n": 75,
+            "rate": 0.2667,
+            "ci95": [
+              0.1798,
+              0.3763
+            ]
+          }
+        },
+        "unanswerable": {
+          "reached_gate_b": 15,
+          "answered": 8,
+          "answered_correct": 0,
+          "suppressed": 7,
+          "suppressed_but_correct": 0,
+          "hallucination": {
+            "k": 8,
+            "n": 75,
+            "rate": 0.1067,
+            "ci95": [
+              0.055,
+              0.1966
+            ]
+          }
+        }
+      },
+      "both": {
+        "answerable": {
+          "reached_gate_b": 57,
+          "answered": 39,
+          "answered_correct": 37,
+          "suppressed": 18,
+          "suppressed_but_correct": 18,
+          "over_abstention": {
+            "k": 36,
+            "n": 75,
+            "rate": 0.48,
+            "ci95": [
+              0.3707,
+              0.5913
+            ]
+          },
+          "answered_correct_rate": {
+            "k": 37,
+            "n": 75,
+            "rate": 0.4933,
+            "ci95": [
+              0.3833,
+              0.604
+            ]
+          }
+        },
+        "unanswerable": {
+          "reached_gate_b": 15,
+          "answered": 10,
+          "answered_correct": 0,
+          "suppressed": 5,
+          "suppressed_but_correct": 0,
+          "hallucination": {
+            "k": 10,
+            "n": 75,
+            "rate": 0.1333,
+            "ci95": [
+              0.0741,
+              0.2283
+            ]
+          }
+        }
+      }
+    },
+    "guarded_cross_fitted": {
+      "v1": {
+        "answerable": {
+          "reached_gate_b": 57,
+          "answered": 18,
+          "answered_correct": 17,
+          "suppressed": 39,
+          "suppressed_but_correct": 38,
+          "over_abstention": {
+            "k": 57,
+            "n": 75,
+            "rate": 0.76,
+            "ci95": [
+              0.6522,
+              0.8425
+            ]
+          },
+          "answered_correct_rate": {
+            "k": 17,
+            "n": 75,
+            "rate": 0.2267,
+            "ci95": [
+              0.1466,
+              0.3334
+            ]
+          }
+        },
+        "unanswerable": {
+          "reached_gate_b": 15,
+          "answered": 8,
+          "answered_correct": 0,
+          "suppressed": 7,
+          "suppressed_but_correct": 0,
+          "hallucination": {
+            "k": 8,
+            "n": 75,
+            "rate": 0.1067,
+            "ci95": [
+              0.055,
+              0.1966
+            ]
+          }
+        },
+        "thresholds_per_fold": [
+          0.7,
+          0.2
+        ]
+      },
+      "both": {
+        "answerable": {
+          "reached_gate_b": 57,
+          "answered": 32,
+          "answered_correct": 31,
+          "suppressed": 25,
+          "suppressed_but_correct": 24,
+          "over_abstention": {
+            "k": 43,
+            "n": 75,
+            "rate": 0.5733,
+            "ci95": [
+              0.4605,
+              0.679
+            ]
+          },
+          "answered_correct_rate": {
+            "k": 31,
+            "n": 75,
+            "rate": 0.4133,
+            "ci95": [
+              0.3088,
+              0.5263
+            ]
+          }
+        },
+        "unanswerable": {
+          "reached_gate_b": 15,
+          "answered": 10,
+          "answered_correct": 0,
+          "suppressed": 5,
+          "suppressed_but_correct": 0,
+          "hallucination": {
+            "k": 10,
+            "n": 75,
+            "rate": 0.1333,
+            "ci95": [
+              0.0741,
+              0.2283
+            ]
+          }
+        },
+        "thresholds_per_fold": [
+          0.7,
+          0.7
+        ]
+      }
+    }
+  }
+}

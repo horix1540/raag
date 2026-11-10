@@ -1,0 +1,59 @@
+{
+  "bench": "C:\\Users\\OMEN\\Desktop\\cornerstone\\data\\benchmarks\\hotpot_dev_150.jsonl",
+  "n_items": 150,
+  "top_k": 5,
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "granularities": {
+    "sentence": {
+      "n": 150,
+      "supporting_recall": 0.5851,
+      "supporting_prec": 0.2747,
+      "full_recall_rate": 0.3067,
+      "median_retrieval_ms": 14.19,
+      "mean_units_indexed": 40.8,
+      "by_colocation": {
+        "colocated": {
+          "n": 0
+        },
+        "split": {
+          "n": 150,
+          "supporting_recall": 0.5851,
+          "supporting_prec": 0.2747,
+          "full_recall_rate": 0.3067,
+          "median_retrieval_ms": 14.19,
+          "mean_units_indexed": 40.8
+        }
+      },
+      "unified_premise_retrieved_rate": 0.0,
+      "sweep_seconds": 31.6
+    },
+    "chunk": {
+      "n": 150,
+      "supporting_recall": 0.8233,
+      "supporting_prec": 0.3293,
+      "full_recall_rate": 0.66,
+      "median_retrieval_ms": 14.36,
+      "mean_units_indexed": 11.8,
+      "by_colocation": {
+        "colocated": {
+          "n": 0
+        },
+        "split": {
+          "n": 150,
+          "supporting_recall": 0.8233,
+          "supporting_prec": 0.3293,
+          "full_recall_rate": 0.66,
+          "median_retrieval_ms": 14.36,
+          "mean_units_indexed": 11.8
+        }
+      },
+      "unified_premise_retrieved_rate": 0.0,
+      "sweep_seconds": 10.6
+    }
+  },
+  "delta_chunk_minus_sentence": {
+    "supporting_recall": 0.2382,
+    "supporting_prec": 0.0546,
+    "full_recall_rate": 0.3533
+  }
+}

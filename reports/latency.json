@@ -1,0 +1,36 @@
+{
+  "embedding_device": "cuda",
+  "scorer_device": "cuda",
+  "scorer": "nli",
+  "top_k": 5,
+  "stages": {
+    "retrieval": {
+      "n": 5,
+      "mean_ms": 6.3,
+      "median_ms": 6.5,
+      "min_ms": 5.5,
+      "max_ms": 6.8
+    },
+    "gate_a": {
+      "n": 5,
+      "mean_ms": 8.4,
+      "median_ms": 8.3,
+      "min_ms": 7.8,
+      "max_ms": 8.9
+    },
+    "gate_b": {
+      "n": 5,
+      "mean_ms": 356.0,
+      "median_ms": 334.8,
+      "min_ms": 267.6,
+      "max_ms": 468.4
+    },
+    "confidence_total": {
+      "n": 5,
+      "mean_ms": 364.3,
+      "median_ms": 343.7,
+      "min_ms": 275.4,
+      "max_ms": 476.5
+    }
+  }
+}
