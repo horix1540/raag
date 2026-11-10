@@ -1,0 +1,2135 @@
+{
+  "query": "What are the five stages of a standard RAG pipeline?",
+  "device": "cuda",
+  "model_load_time_ms": 1673.837199996342,
+  "n_pairs_scored": 180,
+  "timings_ms": {
+    "segmentation_ms": 0.023800006601959467,
+    "pair_construction_ms": 0.15759999223519117,
+    "forward_pass_ms": 1366.2346999917645,
+    "total_gate_b_ms": 3822.8223000041908
+  },
+  "gate_a": {
+    "score": 0.5000468787459407,
+    "passed": true
+  },
+  "gate_b": {
+    "score": 0.15,
+    "passed": false,
+    "nli_faithfulness": 0.8492252215160775
+  },
+  "composite": 0.2083365885474675,
+  "verdict": "abstain_ungrounded",
+  "explanation": "Groundedness 0.15 is below the Gate B threshold 0.25 (1 contradicted, 0 unsupported of 6 claims).",
+  "claims": [
+    {
+      "claim_index": 0,
+      "raw_sentence": "The five stages of a standard RAG pipeline are: 1.",
+      "cleaned_hypothesis": "The five stages of a standard RAG pipeline are: 1.",
+      "best_premise": {
+        "index": 6,
+        "type": "window",
+        "origin": 0,
+        "snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+        "p_entail": 0.9972949499199281,
+        "p_neutral": 0.0021818971284976504,
+        "p_contra": 0.0005231529515744052
+      },
+      "effective_contra": 0.0005231529515744052,
+      "is_supported": true,
+      "is_contradicted": false,
+      "veto_trigger": null,
+      "veto_rule_used": "best_premise (p_entail >= 0.5)",
+      "top_3_premises": [
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "p_entail": 0.9972949499199281,
+          "p_neutral": 0.0021818971284976504,
+          "p_contra": 0.0005231529515744052
+        },
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "p_entail": 0.9972926788813997,
+          "p_neutral": 0.0019103325261963877,
+          "p_contra": 0.0007969885924040698
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "p_entail": 0.002288059499731721,
+          "p_neutral": 0.9968593496946548,
+          "p_contra": 0.00085259080561347
+        }
+      ],
+      "all_pairs": [
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline  \nA conventional RAG pipeline has five stages:  \n1. **Ingestion** \u2014 documents are loaded and normalised into plain text.\n2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000\ncharacters, usually with some overlap so a sentence spanning a boundary is not\nlost.\n3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as\nall-MiniLM-L6-v2, which produces 384-dimensional embeddings.\n4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest\nchunks are found by cosine similarity, usually via an approximate index such as\nHNSW.\n5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language\nmodel produces the answer.",
+          "p_entail": 0.9972926788813997,
+          "p_neutral": 0.0019103325261963877,
+          "p_contra": 0.0007969885924040698
+        },
+        {
+          "premise_index": 1,
+          "origin_index": 1,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates   Retrieval reduces hallucination but does not eliminate it. Three distinct failu",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates  \nRetrieval reduces hallucination but does not eliminate it. Three distinct failure\nmodes are worth separating.  \nFirst, **retrieval failure**: the corpus simply does not contain the answer. A\nsimilarity search always returns its top-k nearest neighbours, so the generator\nreceives passages regardless of whether any of them are relevant. Nearest does not\nmean sufficient.  \nSecond, **grounding failure**: the correct passage is retrieved but the model still\nproduces an unsupported statement, filling a gap from parametric memory rather than\nadmitting the gap exists.  \nThird, **conflict**: the model's output directly contradicts the retrieved passage.  \nThe RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.00045840950686652646,
+          "p_neutral": 0.9956246686296696,
+          "p_contra": 0.003916921863463789
+        },
+        {
+          "premise_index": 2,
+          "origin_index": 2,
+          "premise_type": "passage",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes   ## Unit 1 \u2014 What RAG Is   Retrieval-Augmented Generation (RAG) combines",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes  \n## Unit 1 \u2014 What RAG Is  \nRetrieval-Augmented Generation (RAG) combines a parametric language model with a\nnon-parametric external memory. Instead of relying only on weights learned during\npre-training, the system retrieves relevant passages from a document collection at\nquery time and conditions generation on those passages. The approach was introduced\nby Lewis et al. in 2020.  \nThe immediate benefit is that the knowledge base can be updated without retraining\nthe model. Adding a new document to the index makes that information available on the\nvery next query.",
+          "p_entail": 0.00011794128121031782,
+          "p_neutral": 0.9997236471524099,
+          "p_contra": 0.00015841156637975512
+        },
+        {
+          "premise_index": 3,
+          "origin_index": 3,
+          "premise_type": "passage",
+          "premise_snippet": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*, where a claim is simply absent from the",
+          "full_premise": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,\nwhere a claim is simply absent from the source, and *Evident Conflict*, where a claim\ndisagrees with the source. Evident Conflict is considered the more severe failure.",
+          "p_entail": 0.0001175586934376016,
+          "p_neutral": 0.9991527293096907,
+          "p_contra": 0.0007297119968716606
+        },
+        {
+          "premise_index": 4,
+          "origin_index": 4,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction   A model that abstains when uncertain is performing selective prediction. Performance ",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction  \nA model that abstains when uncertain is performing selective prediction. Performance\nis described by a risk\u2013coverage curve: coverage is the fraction of questions\nanswered, and risk is the error rate among those answered. Lowering the confidence\nthreshold answers more questions at higher risk. The area under the risk\u2013coverage\ncurve summarises the trade-off in a single number, where lower is better.  \nSQuAD 2.0 is useful for evaluating abstention because roughly one third of its\nquestions are deliberately unanswerable from the accompanying paragraph, providing\nground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.0007959706003015484,
+          "p_neutral": 0.9967676235837847,
+          "p_contra": 0.0024364058159139067
+        },
+        {
+          "premise_index": 5,
+          "origin_index": 5,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics   Faithfulness measures whether every claim in the generated answer is supported by the r",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics  \nFaithfulness measures whether every claim in the generated answer is supported by the\nretrieved context. Answer relevancy measures whether the answer addresses the\nquestion. Contextual relevancy measures whether the retrieved passages are pertinent\nto the query, and is a property of the retriever rather than the generator.  \nBecause faithfulness requires an answer to already exist, it can only be computed\nafter generation. Contextual relevancy needs only the query and the passages, so it\ncan be computed before generation.",
+          "p_entail": 1.101499838482423e-05,
+          "p_neutral": 0.00013166040937032239,
+          "p_contra": 0.9998573245922447
+        },
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded and normalised into plain text. 2.",
+          "p_entail": 0.9972949499199281,
+          "p_neutral": 0.0021818971284976504,
+          "p_contra": 0.0005231529515744052
+        },
+        {
+          "premise_index": 7,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+          "full_premise": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost.",
+          "p_entail": 0.0009180748715319587,
+          "p_neutral": 0.9714351078052952,
+          "p_contra": 0.02764681732317289
+        },
+        {
+          "premise_index": 8,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so",
+          "full_premise": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3.",
+          "p_entail": 0.0002641200283619082,
+          "p_neutral": 0.9404358233351993,
+          "p_contra": 0.059300056636438704
+        },
+        {
+          "premise_index": 9,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+          "full_premise": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings.",
+          "p_entail": 0.001508705617271916,
+          "p_neutral": 0.9398399705001769,
+          "p_contra": 0.058651323882551225
+        },
+        {
+          "premise_index": 10,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dim",
+          "full_premise": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4.",
+          "p_entail": 0.00047160099950229833,
+          "p_neutral": 0.4989385290506163,
+          "p_contra": 0.5005898699498814
+        },
+        {
+          "premise_index": 11,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+          "full_premise": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW.",
+          "p_entail": 0.0016154857278951593,
+          "p_neutral": 0.989833228093325,
+          "p_contra": 0.008551286178779923
+        },
+        {
+          "premise_index": 12,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, us",
+          "full_premise": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5.",
+          "p_entail": 0.0016743981834521332,
+          "p_neutral": 0.9967124661183578,
+          "p_contra": 0.0016131356981900348
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "full_premise": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language model produces the answer.",
+          "p_entail": 0.002288059499731721,
+          "p_neutral": 0.9968593496946548,
+          "p_contra": 0.00085259080561347
+        },
+        {
+          "premise_index": 14,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer.",
+          "p_entail": 0.0002626476162548797,
+          "p_neutral": 0.9811379500229788,
+          "p_contra": 0.018599402360766272
+        },
+        {
+          "premise_index": 15,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the ",
+          "full_premise": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant.",
+          "p_entail": 1.7838248014452814e-05,
+          "p_neutral": 0.000997948824879726,
+          "p_contra": 0.9989842129271057
+        },
+        {
+          "premise_index": 16,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-",
+          "full_premise": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient.",
+          "p_entail": 0.0013611460976159892,
+          "p_neutral": 0.6908608719795384,
+          "p_contra": 0.3077779819228455
+        },
+        {
+          "premise_index": 17,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whethe",
+          "full_premise": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists.",
+          "p_entail": 0.0008205076793527042,
+          "p_neutral": 0.9165993516136236,
+          "p_contra": 0.08258014070702369
+        },
+        {
+          "premise_index": 18,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still pr",
+          "full_premise": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage.",
+          "p_entail": 0.00030913874166216466,
+          "p_neutral": 0.9967479971035955,
+          "p_contra": 0.0029428641547422363
+        },
+        {
+          "premise_index": 19,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, f",
+          "full_premise": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage. The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.00040218011380147175,
+          "p_neutral": 0.9968116196251762,
+          "p_contra": 0.0027862002610224406
+        },
+        {
+          "premise_index": 20,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a p",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a parametric language model with a non-parametric external memory. Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al.",
+          "p_entail": 6.70010803071747e-05,
+          "p_neutral": 0.9997378943989715,
+          "p_contra": 0.00019510452072123133
+        },
+        {
+          "premise_index": 21,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document c",
+          "full_premise": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al. in 2020.",
+          "p_entail": 6.098065235331694e-05,
+          "p_neutral": 0.9996324164094894,
+          "p_contra": 0.00030660293815713895
+        },
+        {
+          "premise_index": 22,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated wit",
+          "full_premise": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model.",
+          "p_entail": 0.0003851261870853209,
+          "p_neutral": 0.9992846733346704,
+          "p_contra": 0.00033020047824421734
+        },
+        {
+          "premise_index": 23,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new docu",
+          "full_premise": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new document to the index makes that information available on the very next query.",
+          "p_entail": 0.0004917755473419087,
+          "p_neutral": 0.9992771335172285,
+          "p_contra": 0.00023109093542955859
+        },
+        {
+          "premise_index": 24,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk.",
+          "p_entail": 0.00045380908132470566,
+          "p_neutral": 0.9952370875735272,
+          "p_contra": 0.004309103345148173
+        },
+        {
+          "premise_index": 25,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error",
+          "full_premise": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better.",
+          "p_entail": 0.00026703572364637887,
+          "p_neutral": 0.4932094442612882,
+          "p_contra": 0.5065235200150653
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "full_premise": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better. SQuAD 2.0 is useful for evaluating abstention because roughly one third of its questions are deliberately unanswerable from the accompanying paragraph, providing ground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.0008591060704444809,
+          "p_neutral": 0.9969764979834248,
+          "p_contra": 0.002164395946130669
+        },
+        {
+          "premise_index": 27,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the ret",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the retrieved context. Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator.",
+          "p_entail": 0.0007135359105955407,
+          "p_neutral": 0.9975626121949225,
+          "p_contra": 0.0017238518944821311
+        },
+        {
+          "premise_index": 28,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved",
+          "full_premise": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation.",
+          "p_entail": 2.800013918561898e-05,
+          "p_neutral": 0.009203049748030306,
+          "p_contra": 0.9907689501127841
+        },
+        {
+          "premise_index": 29,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retrie",
+          "full_premise": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation. Contextual relevancy needs only the query and the passages, so it can be computed before generation.",
+          "p_entail": 2.0207580464042133e-05,
+          "p_neutral": 0.00021887898446425975,
+          "p_contra": 0.9997609134350717
+        }
+      ]
+    },
+    {
+      "claim_index": 1,
+      "raw_sentence": "Ingestion \u2014 documents are loaded and normalised into plain text. 2.",
+      "cleaned_hypothesis": "Ingestion \u2014 documents are loaded and normalised into plain text. 2.",
+      "best_premise": {
+        "index": 7,
+        "type": "window",
+        "origin": 0,
+        "snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+        "p_entail": 0.990126808158307,
+        "p_neutral": 0.0073273751598609,
+        "p_contra": 0.0025458166818321695
+      },
+      "effective_contra": 0.0025458166818321695,
+      "is_supported": true,
+      "is_contradicted": false,
+      "veto_trigger": null,
+      "veto_rule_used": "best_premise (p_entail >= 0.5)",
+      "top_3_premises": [
+        {
+          "premise_index": 7,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+          "p_entail": 0.990126808158307,
+          "p_neutral": 0.0073273751598609,
+          "p_contra": 0.0025458166818321695
+        },
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "p_entail": 0.9839679048125404,
+          "p_neutral": 0.015059314993046753,
+          "p_contra": 0.0009727801944126968
+        },
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "p_entail": 0.0987317018282785,
+          "p_neutral": 0.20021875253110144,
+          "p_contra": 0.70104954564062
+        }
+      ],
+      "all_pairs": [
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline  \nA conventional RAG pipeline has five stages:  \n1. **Ingestion** \u2014 documents are loaded and normalised into plain text.\n2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000\ncharacters, usually with some overlap so a sentence spanning a boundary is not\nlost.\n3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as\nall-MiniLM-L6-v2, which produces 384-dimensional embeddings.\n4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest\nchunks are found by cosine similarity, usually via an approximate index such as\nHNSW.\n5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language\nmodel produces the answer.",
+          "p_entail": 0.9839679048125404,
+          "p_neutral": 0.015059314993046753,
+          "p_contra": 0.0009727801944126968
+        },
+        {
+          "premise_index": 1,
+          "origin_index": 1,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates   Retrieval reduces hallucination but does not eliminate it. Three distinct failu",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates  \nRetrieval reduces hallucination but does not eliminate it. Three distinct failure\nmodes are worth separating.  \nFirst, **retrieval failure**: the corpus simply does not contain the answer. A\nsimilarity search always returns its top-k nearest neighbours, so the generator\nreceives passages regardless of whether any of them are relevant. Nearest does not\nmean sufficient.  \nSecond, **grounding failure**: the correct passage is retrieved but the model still\nproduces an unsupported statement, filling a gap from parametric memory rather than\nadmitting the gap exists.  \nThird, **conflict**: the model's output directly contradicts the retrieved passage.  \nThe RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0009239924307334122,
+          "p_neutral": 0.9923636251322256,
+          "p_contra": 0.006712382437040955
+        },
+        {
+          "premise_index": 2,
+          "origin_index": 2,
+          "premise_type": "passage",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes   ## Unit 1 \u2014 What RAG Is   Retrieval-Augmented Generation (RAG) combines",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes  \n## Unit 1 \u2014 What RAG Is  \nRetrieval-Augmented Generation (RAG) combines a parametric language model with a\nnon-parametric external memory. Instead of relying only on weights learned during\npre-training, the system retrieves relevant passages from a document collection at\nquery time and conditions generation on those passages. The approach was introduced\nby Lewis et al. in 2020.  \nThe immediate benefit is that the knowledge base can be updated without retraining\nthe model. Adding a new document to the index makes that information available on the\nvery next query.",
+          "p_entail": 0.0001308131767671817,
+          "p_neutral": 0.9996916625474768,
+          "p_contra": 0.00017752427575616752
+        },
+        {
+          "premise_index": 3,
+          "origin_index": 3,
+          "premise_type": "passage",
+          "premise_snippet": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*, where a claim is simply absent from the",
+          "full_premise": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,\nwhere a claim is simply absent from the source, and *Evident Conflict*, where a claim\ndisagrees with the source. Evident Conflict is considered the more severe failure.",
+          "p_entail": 0.00012578853899873897,
+          "p_neutral": 0.9995679115663355,
+          "p_contra": 0.00030629989466574487
+        },
+        {
+          "premise_index": 4,
+          "origin_index": 4,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction   A model that abstains when uncertain is performing selective prediction. Performance ",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction  \nA model that abstains when uncertain is performing selective prediction. Performance\nis described by a risk\u2013coverage curve: coverage is the fraction of questions\nanswered, and risk is the error rate among those answered. Lowering the confidence\nthreshold answers more questions at higher risk. The area under the risk\u2013coverage\ncurve summarises the trade-off in a single number, where lower is better.  \nSQuAD 2.0 is useful for evaluating abstention because roughly one third of its\nquestions are deliberately unanswerable from the accompanying paragraph, providing\nground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.004569989420970298,
+          "p_neutral": 0.9000860576733386,
+          "p_contra": 0.09534395290569099
+        },
+        {
+          "premise_index": 5,
+          "origin_index": 5,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics   Faithfulness measures whether every claim in the generated answer is supported by the r",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics  \nFaithfulness measures whether every claim in the generated answer is supported by the\nretrieved context. Answer relevancy measures whether the answer addresses the\nquestion. Contextual relevancy measures whether the retrieved passages are pertinent\nto the query, and is a property of the retriever rather than the generator.  \nBecause faithfulness requires an answer to already exist, it can only be computed\nafter generation. Contextual relevancy needs only the query and the passages, so it\ncan be computed before generation.",
+          "p_entail": 7.410121058453886e-06,
+          "p_neutral": 7.244496697533182e-05,
+          "p_contra": 0.9999201449119662
+        },
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded and normalised into plain text. 2.",
+          "p_entail": 0.0987317018282785,
+          "p_neutral": 0.20021875253110144,
+          "p_contra": 0.70104954564062
+        },
+        {
+          "premise_index": 7,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+          "full_premise": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost.",
+          "p_entail": 0.990126808158307,
+          "p_neutral": 0.0073273751598609,
+          "p_contra": 0.0025458166818321695
+        },
+        {
+          "premise_index": 8,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so",
+          "full_premise": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3.",
+          "p_entail": 2.7388704384081606e-05,
+          "p_neutral": 0.007267906564655196,
+          "p_contra": 0.9927047047309606
+        },
+        {
+          "premise_index": 9,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+          "full_premise": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings.",
+          "p_entail": 1.4576496995180844e-05,
+          "p_neutral": 0.0014333114309575123,
+          "p_contra": 0.9985521120720473
+        },
+        {
+          "premise_index": 10,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dim",
+          "full_premise": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4.",
+          "p_entail": 1.9109066208785676e-05,
+          "p_neutral": 0.007294251095214111,
+          "p_contra": 0.9926866398385773
+        },
+        {
+          "premise_index": 11,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+          "full_premise": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW.",
+          "p_entail": 7.410095416064666e-05,
+          "p_neutral": 0.006192705492252321,
+          "p_contra": 0.993733193553587
+        },
+        {
+          "premise_index": 12,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, us",
+          "full_premise": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5.",
+          "p_entail": 3.867078209677184e-05,
+          "p_neutral": 0.0005410829010491135,
+          "p_contra": 0.999420246316854
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "full_premise": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language model produces the answer.",
+          "p_entail": 2.76997169882919e-05,
+          "p_neutral": 0.000959531343853442,
+          "p_contra": 0.9990127689391584
+        },
+        {
+          "premise_index": 14,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer.",
+          "p_entail": 0.0011805891560572519,
+          "p_neutral": 0.9976507415000242,
+          "p_contra": 0.0011686693439184632
+        },
+        {
+          "premise_index": 15,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the ",
+          "full_premise": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant.",
+          "p_entail": 8.216131052250542e-05,
+          "p_neutral": 0.1990528090883655,
+          "p_contra": 0.8008650296011119
+        },
+        {
+          "premise_index": 16,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-",
+          "full_premise": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient.",
+          "p_entail": 0.00013188673970395196,
+          "p_neutral": 0.03544237726238035,
+          "p_contra": 0.9644257359979156
+        },
+        {
+          "premise_index": 17,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whethe",
+          "full_premise": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists.",
+          "p_entail": 0.008065082478709493,
+          "p_neutral": 0.24039672981210133,
+          "p_contra": 0.7515381877091892
+        },
+        {
+          "premise_index": 18,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still pr",
+          "full_premise": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage.",
+          "p_entail": 0.006409192099537978,
+          "p_neutral": 0.014018972505916586,
+          "p_contra": 0.9795718353945455
+        },
+        {
+          "premise_index": 19,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, f",
+          "full_premise": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage. The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.003794394330641187,
+          "p_neutral": 0.9898210961963471,
+          "p_contra": 0.006384509473011758
+        },
+        {
+          "premise_index": 20,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a p",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a parametric language model with a non-parametric external memory. Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al.",
+          "p_entail": 4.465881417508907e-05,
+          "p_neutral": 0.9994938510775816,
+          "p_contra": 0.0004614901082433817
+        },
+        {
+          "premise_index": 21,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document c",
+          "full_premise": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al. in 2020.",
+          "p_entail": 3.744124836591085e-05,
+          "p_neutral": 0.9993321897674795,
+          "p_contra": 0.0006303689841545738
+        },
+        {
+          "premise_index": 22,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated wit",
+          "full_premise": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model.",
+          "p_entail": 0.0018522207721050577,
+          "p_neutral": 0.9969769927352239,
+          "p_contra": 0.0011707864926710763
+        },
+        {
+          "premise_index": 23,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new docu",
+          "full_premise": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new document to the index makes that information available on the very next query.",
+          "p_entail": 0.005759191235423016,
+          "p_neutral": 0.9904192042354332,
+          "p_contra": 0.003821604529143936
+        },
+        {
+          "premise_index": 24,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk.",
+          "p_entail": 8.231884765127772e-05,
+          "p_neutral": 0.0007338320724116074,
+          "p_contra": 0.9991838490799371
+        },
+        {
+          "premise_index": 25,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error",
+          "full_premise": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better.",
+          "p_entail": 6.026447384994692e-05,
+          "p_neutral": 0.005350494176144488,
+          "p_contra": 0.9945892413500057
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "full_premise": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better. SQuAD 2.0 is useful for evaluating abstention because roughly one third of its questions are deliberately unanswerable from the accompanying paragraph, providing ground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.02015068766186645,
+          "p_neutral": 0.08581244130226474,
+          "p_contra": 0.8940368710358688
+        },
+        {
+          "premise_index": 27,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the ret",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the retrieved context. Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator.",
+          "p_entail": 0.0003790998292140134,
+          "p_neutral": 0.0004318378905169569,
+          "p_contra": 0.9991890622802692
+        },
+        {
+          "premise_index": 28,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved",
+          "full_premise": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation.",
+          "p_entail": 9.96946595936969e-06,
+          "p_neutral": 0.00011157526172760705,
+          "p_contra": 0.999878455272313
+        },
+        {
+          "premise_index": 29,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retrie",
+          "full_premise": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation. Contextual relevancy needs only the query and the passages, so it can be computed before generation.",
+          "p_entail": 1.5071811154366991e-05,
+          "p_neutral": 0.00013308551112297892,
+          "p_contra": 0.9998518426777225
+        }
+      ]
+    },
+    {
+      "claim_index": 2,
+      "raw_sentence": "Chunking \u2014 long documents are split into passages with some overlap. 3.",
+      "cleaned_hypothesis": "Chunking \u2014 long documents are split into passages with some overlap. 3.",
+      "best_premise": {
+        "index": 9,
+        "type": "window",
+        "origin": 0,
+        "snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+        "p_entail": 0.9941338634234371,
+        "p_neutral": 0.005630058983712015,
+        "p_contra": 0.000236077592850707
+      },
+      "effective_contra": 0.000236077592850707,
+      "is_supported": true,
+      "is_contradicted": false,
+      "veto_trigger": null,
+      "veto_rule_used": "best_premise (p_entail >= 0.5)",
+      "top_3_premises": [
+        {
+          "premise_index": 9,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+          "p_entail": 0.9941338634234371,
+          "p_neutral": 0.005630058983712015,
+          "p_contra": 0.000236077592850707
+        },
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "p_entail": 0.9901666808718582,
+          "p_neutral": 0.009029402475584675,
+          "p_contra": 0.0008039166525570444
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "p_entail": 0.6911598787413823,
+          "p_neutral": 0.21379596003980358,
+          "p_contra": 0.09504416121881412
+        }
+      ],
+      "all_pairs": [
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline  \nA conventional RAG pipeline has five stages:  \n1. **Ingestion** \u2014 documents are loaded and normalised into plain text.\n2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000\ncharacters, usually with some overlap so a sentence spanning a boundary is not\nlost.\n3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as\nall-MiniLM-L6-v2, which produces 384-dimensional embeddings.\n4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest\nchunks are found by cosine similarity, usually via an approximate index such as\nHNSW.\n5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language\nmodel produces the answer.",
+          "p_entail": 0.9901666808718582,
+          "p_neutral": 0.009029402475584675,
+          "p_contra": 0.0008039166525570444
+        },
+        {
+          "premise_index": 1,
+          "origin_index": 1,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates   Retrieval reduces hallucination but does not eliminate it. Three distinct failu",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates  \nRetrieval reduces hallucination but does not eliminate it. Three distinct failure\nmodes are worth separating.  \nFirst, **retrieval failure**: the corpus simply does not contain the answer. A\nsimilarity search always returns its top-k nearest neighbours, so the generator\nreceives passages regardless of whether any of them are relevant. Nearest does not\nmean sufficient.  \nSecond, **grounding failure**: the correct passage is retrieved but the model still\nproduces an unsupported statement, filling a gap from parametric memory rather than\nadmitting the gap exists.  \nThird, **conflict**: the model's output directly contradicts the retrieved passage.  \nThe RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0011120459124315538,
+          "p_neutral": 0.9961371615828216,
+          "p_contra": 0.0027507925047466904
+        },
+        {
+          "premise_index": 2,
+          "origin_index": 2,
+          "premise_type": "passage",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes   ## Unit 1 \u2014 What RAG Is   Retrieval-Augmented Generation (RAG) combines",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes  \n## Unit 1 \u2014 What RAG Is  \nRetrieval-Augmented Generation (RAG) combines a parametric language model with a\nnon-parametric external memory. Instead of relying only on weights learned during\npre-training, the system retrieves relevant passages from a document collection at\nquery time and conditions generation on those passages. The approach was introduced\nby Lewis et al. in 2020.  \nThe immediate benefit is that the knowledge base can be updated without retraining\nthe model. Adding a new document to the index makes that information available on the\nvery next query.",
+          "p_entail": 0.00029831818027253843,
+          "p_neutral": 0.9995928050155948,
+          "p_contra": 0.00010887680413282156
+        },
+        {
+          "premise_index": 3,
+          "origin_index": 3,
+          "premise_type": "passage",
+          "premise_snippet": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*, where a claim is simply absent from the",
+          "full_premise": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,\nwhere a claim is simply absent from the source, and *Evident Conflict*, where a claim\ndisagrees with the source. Evident Conflict is considered the more severe failure.",
+          "p_entail": 0.0002456387724814937,
+          "p_neutral": 0.9995817643914087,
+          "p_contra": 0.00017259683610984167
+        },
+        {
+          "premise_index": 4,
+          "origin_index": 4,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction   A model that abstains when uncertain is performing selective prediction. Performance ",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction  \nA model that abstains when uncertain is performing selective prediction. Performance\nis described by a risk\u2013coverage curve: coverage is the fraction of questions\nanswered, and risk is the error rate among those answered. Lowering the confidence\nthreshold answers more questions at higher risk. The area under the risk\u2013coverage\ncurve summarises the trade-off in a single number, where lower is better.  \nSQuAD 2.0 is useful for evaluating abstention because roughly one third of its\nquestions are deliberately unanswerable from the accompanying paragraph, providing\nground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.005079589052409978,
+          "p_neutral": 0.9763781010530702,
+          "p_contra": 0.01854230989451982
+        },
+        {
+          "premise_index": 5,
+          "origin_index": 5,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics   Faithfulness measures whether every claim in the generated answer is supported by the r",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics  \nFaithfulness measures whether every claim in the generated answer is supported by the\nretrieved context. Answer relevancy measures whether the answer addresses the\nquestion. Contextual relevancy measures whether the retrieved passages are pertinent\nto the query, and is a property of the retriever rather than the generator.  \nBecause faithfulness requires an answer to already exist, it can only be computed\nafter generation. Contextual relevancy needs only the query and the passages, so it\ncan be computed before generation.",
+          "p_entail": 1.0218680061044119e-05,
+          "p_neutral": 0.0001730505709543186,
+          "p_contra": 0.9998167307489847
+        },
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded and normalised into plain text. 2.",
+          "p_entail": 0.0005128802033669818,
+          "p_neutral": 0.999058491698642,
+          "p_contra": 0.0004286280979909114
+        },
+        {
+          "premise_index": 7,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+          "full_premise": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost.",
+          "p_entail": 0.00961197025721592,
+          "p_neutral": 0.9594778098151057,
+          "p_contra": 0.030910219927678412
+        },
+        {
+          "premise_index": 8,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so",
+          "full_premise": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3.",
+          "p_entail": 0.028496003556250937,
+          "p_neutral": 0.023465704461114387,
+          "p_contra": 0.9480382919826348
+        },
+        {
+          "premise_index": 9,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+          "full_premise": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings.",
+          "p_entail": 0.9941338634234371,
+          "p_neutral": 0.005630058983712015,
+          "p_contra": 0.000236077592850707
+        },
+        {
+          "premise_index": 10,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dim",
+          "full_premise": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4.",
+          "p_entail": 8.247994291609748e-05,
+          "p_neutral": 0.01694407022715913,
+          "p_contra": 0.9829734498299249
+        },
+        {
+          "premise_index": 11,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+          "full_premise": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW.",
+          "p_entail": 0.0013686636271746696,
+          "p_neutral": 0.7313287462143604,
+          "p_contra": 0.267302590158465
+        },
+        {
+          "premise_index": 12,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, us",
+          "full_premise": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5.",
+          "p_entail": 0.00013458753712257643,
+          "p_neutral": 0.004618865327132961,
+          "p_contra": 0.9952465471357445
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "full_premise": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language model produces the answer.",
+          "p_entail": 0.0017729002163619878,
+          "p_neutral": 0.941143755455229,
+          "p_contra": 0.057083344328409114
+        },
+        {
+          "premise_index": 14,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer.",
+          "p_entail": 0.00138296064920143,
+          "p_neutral": 0.9981565378489426,
+          "p_contra": 0.0004605015018559798
+        },
+        {
+          "premise_index": 15,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the ",
+          "full_premise": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant.",
+          "p_entail": 0.0005008195240511325,
+          "p_neutral": 0.9964109723600948,
+          "p_contra": 0.0030882081158541325
+        },
+        {
+          "premise_index": 16,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-",
+          "full_premise": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient.",
+          "p_entail": 0.00023058282907030404,
+          "p_neutral": 0.05739801247906303,
+          "p_contra": 0.9423714046918668
+        },
+        {
+          "premise_index": 17,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whethe",
+          "full_premise": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists.",
+          "p_entail": 0.0014813918992725948,
+          "p_neutral": 0.9841650351855259,
+          "p_contra": 0.014353572915201495
+        },
+        {
+          "premise_index": 18,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still pr",
+          "full_premise": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage.",
+          "p_entail": 0.0167272288078813,
+          "p_neutral": 0.9806186928782649,
+          "p_contra": 0.0026540783138537687
+        },
+        {
+          "premise_index": 19,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, f",
+          "full_premise": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage. The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0015317774657425207,
+          "p_neutral": 0.9978502140781319,
+          "p_contra": 0.0006180084561256909
+        },
+        {
+          "premise_index": 20,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a p",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a parametric language model with a non-parametric external memory. Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al.",
+          "p_entail": 0.00011594259728111214,
+          "p_neutral": 0.9997082392720593,
+          "p_contra": 0.0001758181306595792
+        },
+        {
+          "premise_index": 21,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document c",
+          "full_premise": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al. in 2020.",
+          "p_entail": 0.00010635776640808081,
+          "p_neutral": 0.99955560063737,
+          "p_contra": 0.0003380415962219037
+        },
+        {
+          "premise_index": 22,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated wit",
+          "full_premise": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model.",
+          "p_entail": 0.0022236451070245045,
+          "p_neutral": 0.9975266510863318,
+          "p_contra": 0.0002497038066437734
+        },
+        {
+          "premise_index": 23,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new docu",
+          "full_premise": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new document to the index makes that information available on the very next query.",
+          "p_entail": 0.0009922909604116316,
+          "p_neutral": 0.9986162399212953,
+          "p_contra": 0.0003914691182929291
+        },
+        {
+          "premise_index": 24,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk.",
+          "p_entail": 0.0010873397217328895,
+          "p_neutral": 0.04309173435279579,
+          "p_contra": 0.9558209259254714
+        },
+        {
+          "premise_index": 25,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error",
+          "full_premise": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better.",
+          "p_entail": 0.0034054385621062676,
+          "p_neutral": 0.014281821544455772,
+          "p_contra": 0.982312739893438
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "full_premise": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better. SQuAD 2.0 is useful for evaluating abstention because roughly one third of its questions are deliberately unanswerable from the accompanying paragraph, providing ground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.6911598787413823,
+          "p_neutral": 0.21379596003980358,
+          "p_contra": 0.09504416121881412
+        },
+        {
+          "premise_index": 27,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the ret",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the retrieved context. Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator.",
+          "p_entail": 0.0012626304985495465,
+          "p_neutral": 0.15414532534034803,
+          "p_contra": 0.8445920441611025
+        },
+        {
+          "premise_index": 28,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved",
+          "full_premise": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation.",
+          "p_entail": 1.4404446431845863e-05,
+          "p_neutral": 0.000405205802455784,
+          "p_contra": 0.9995803897511124
+        },
+        {
+          "premise_index": 29,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retrie",
+          "full_premise": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation. Contextual relevancy needs only the query and the passages, so it can be computed before generation.",
+          "p_entail": 2.6120828441848698e-05,
+          "p_neutral": 0.0003598128927638972,
+          "p_contra": 0.9996140662787945
+        }
+      ]
+    },
+    {
+      "claim_index": 3,
+      "raw_sentence": "Embedding \u2014 chunks are mapped to dense vectors by an encoder. 4.",
+      "cleaned_hypothesis": "Embedding \u2014 chunks are mapped to dense vectors by an encoder. 4.",
+      "best_premise": {
+        "index": 11,
+        "type": "window",
+        "origin": 0,
+        "snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+        "p_entail": 0.9983159976428289,
+        "p_neutral": 0.001534429457770841,
+        "p_contra": 0.00014957289940035513
+      },
+      "effective_contra": 0.00014957289940035513,
+      "is_supported": true,
+      "is_contradicted": false,
+      "veto_trigger": null,
+      "veto_rule_used": "best_premise (p_entail >= 0.5)",
+      "top_3_premises": [
+        {
+          "premise_index": 11,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+          "p_entail": 0.9983159976428289,
+          "p_neutral": 0.001534429457770841,
+          "p_contra": 0.00014957289940035513
+        },
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "p_entail": 0.9973929275036669,
+          "p_neutral": 0.00220933160842434,
+          "p_contra": 0.0003977408879086873
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "p_entail": 0.4638434433952126,
+          "p_neutral": 0.3640055147250576,
+          "p_contra": 0.17215104187972982
+        }
+      ],
+      "all_pairs": [
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline  \nA conventional RAG pipeline has five stages:  \n1. **Ingestion** \u2014 documents are loaded and normalised into plain text.\n2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000\ncharacters, usually with some overlap so a sentence spanning a boundary is not\nlost.\n3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as\nall-MiniLM-L6-v2, which produces 384-dimensional embeddings.\n4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest\nchunks are found by cosine similarity, usually via an approximate index such as\nHNSW.\n5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language\nmodel produces the answer.",
+          "p_entail": 0.9973929275036669,
+          "p_neutral": 0.00220933160842434,
+          "p_contra": 0.0003977408879086873
+        },
+        {
+          "premise_index": 1,
+          "origin_index": 1,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates   Retrieval reduces hallucination but does not eliminate it. Three distinct failu",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates  \nRetrieval reduces hallucination but does not eliminate it. Three distinct failure\nmodes are worth separating.  \nFirst, **retrieval failure**: the corpus simply does not contain the answer. A\nsimilarity search always returns its top-k nearest neighbours, so the generator\nreceives passages regardless of whether any of them are relevant. Nearest does not\nmean sufficient.  \nSecond, **grounding failure**: the correct passage is retrieved but the model still\nproduces an unsupported statement, filling a gap from parametric memory rather than\nadmitting the gap exists.  \nThird, **conflict**: the model's output directly contradicts the retrieved passage.  \nThe RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0004617754239211915,
+          "p_neutral": 0.9954275659543355,
+          "p_contra": 0.004110658621743317
+        },
+        {
+          "premise_index": 2,
+          "origin_index": 2,
+          "premise_type": "passage",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes   ## Unit 1 \u2014 What RAG Is   Retrieval-Augmented Generation (RAG) combines",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes  \n## Unit 1 \u2014 What RAG Is  \nRetrieval-Augmented Generation (RAG) combines a parametric language model with a\nnon-parametric external memory. Instead of relying only on weights learned during\npre-training, the system retrieves relevant passages from a document collection at\nquery time and conditions generation on those passages. The approach was introduced\nby Lewis et al. in 2020.  \nThe immediate benefit is that the knowledge base can be updated without retraining\nthe model. Adding a new document to the index makes that information available on the\nvery next query.",
+          "p_entail": 0.00022445564154274187,
+          "p_neutral": 0.9997019052751245,
+          "p_contra": 7.363908333262359e-05
+        },
+        {
+          "premise_index": 3,
+          "origin_index": 3,
+          "premise_type": "passage",
+          "premise_snippet": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*, where a claim is simply absent from the",
+          "full_premise": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,\nwhere a claim is simply absent from the source, and *Evident Conflict*, where a claim\ndisagrees with the source. Evident Conflict is considered the more severe failure.",
+          "p_entail": 0.00014571321263869922,
+          "p_neutral": 0.9996939248829847,
+          "p_contra": 0.00016036190437660678
+        },
+        {
+          "premise_index": 4,
+          "origin_index": 4,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction   A model that abstains when uncertain is performing selective prediction. Performance ",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction  \nA model that abstains when uncertain is performing selective prediction. Performance\nis described by a risk\u2013coverage curve: coverage is the fraction of questions\nanswered, and risk is the error rate among those answered. Lowering the confidence\nthreshold answers more questions at higher risk. The area under the risk\u2013coverage\ncurve summarises the trade-off in a single number, where lower is better.  \nSQuAD 2.0 is useful for evaluating abstention because roughly one third of its\nquestions are deliberately unanswerable from the accompanying paragraph, providing\nground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.0009300390496429034,
+          "p_neutral": 0.9921701454768613,
+          "p_contra": 0.006899815473495708
+        },
+        {
+          "premise_index": 5,
+          "origin_index": 5,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics   Faithfulness measures whether every claim in the generated answer is supported by the r",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics  \nFaithfulness measures whether every claim in the generated answer is supported by the\nretrieved context. Answer relevancy measures whether the answer addresses the\nquestion. Contextual relevancy measures whether the retrieved passages are pertinent\nto the query, and is a property of the retriever rather than the generator.  \nBecause faithfulness requires an answer to already exist, it can only be computed\nafter generation. Contextual relevancy needs only the query and the passages, so it\ncan be computed before generation.",
+          "p_entail": 9.336284219868035e-06,
+          "p_neutral": 9.139473764981342e-05,
+          "p_contra": 0.9998992689781304
+        },
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded and normalised into plain text. 2.",
+          "p_entail": 0.00042429261946774934,
+          "p_neutral": 0.9991081627705144,
+          "p_contra": 0.00046754461001780127
+        },
+        {
+          "premise_index": 7,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+          "full_premise": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost.",
+          "p_entail": 4.639181680605751e-05,
+          "p_neutral": 0.003090677720464311,
+          "p_contra": 0.9968629304627297
+        },
+        {
+          "premise_index": 8,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so",
+          "full_premise": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3.",
+          "p_entail": 3.010506977959911e-05,
+          "p_neutral": 0.8622748037056852,
+          "p_contra": 0.13769509122453522
+        },
+        {
+          "premise_index": 9,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+          "full_premise": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings.",
+          "p_entail": 0.04317376749488361,
+          "p_neutral": 0.7785193528921549,
+          "p_contra": 0.17830687961296154
+        },
+        {
+          "premise_index": 10,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dim",
+          "full_premise": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4.",
+          "p_entail": 0.0198388586426914,
+          "p_neutral": 0.006279511807829652,
+          "p_contra": 0.973881629549479
+        },
+        {
+          "premise_index": 11,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+          "full_premise": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW.",
+          "p_entail": 0.9983159976428289,
+          "p_neutral": 0.001534429457770841,
+          "p_contra": 0.00014957289940035513
+        },
+        {
+          "premise_index": 12,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, us",
+          "full_premise": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5.",
+          "p_entail": 0.00018198499658379931,
+          "p_neutral": 0.00971220579587911,
+          "p_contra": 0.990105809207537
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "full_premise": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language model produces the answer.",
+          "p_entail": 0.0004512342111007441,
+          "p_neutral": 0.9553651903456576,
+          "p_contra": 0.04418357544324154
+        },
+        {
+          "premise_index": 14,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer.",
+          "p_entail": 0.00019633571510341025,
+          "p_neutral": 0.9990001495996026,
+          "p_contra": 0.0008035146852940601
+        },
+        {
+          "premise_index": 15,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the ",
+          "full_premise": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant.",
+          "p_entail": 7.638029860327055e-05,
+          "p_neutral": 0.7744025261986034,
+          "p_contra": 0.2255210935027934
+        },
+        {
+          "premise_index": 16,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-",
+          "full_premise": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient.",
+          "p_entail": 0.00029873687915743193,
+          "p_neutral": 0.20281307098839038,
+          "p_contra": 0.7968881921324523
+        },
+        {
+          "premise_index": 17,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whethe",
+          "full_premise": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists.",
+          "p_entail": 0.0003362656541268665,
+          "p_neutral": 0.02449545326908961,
+          "p_contra": 0.9751682810767834
+        },
+        {
+          "premise_index": 18,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still pr",
+          "full_premise": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage.",
+          "p_entail": 0.07257751848087664,
+          "p_neutral": 0.9203639975629987,
+          "p_contra": 0.0070584839561246854
+        },
+        {
+          "premise_index": 19,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, f",
+          "full_premise": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage. The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0009328656645532261,
+          "p_neutral": 0.9977262025943389,
+          "p_contra": 0.0013409317411079678
+        },
+        {
+          "premise_index": 20,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a p",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a parametric language model with a non-parametric external memory. Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al.",
+          "p_entail": 7.080683785454212e-05,
+          "p_neutral": 0.9997224040398668,
+          "p_contra": 0.00020678912227877313
+        },
+        {
+          "premise_index": 21,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document c",
+          "full_premise": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al. in 2020.",
+          "p_entail": 4.5434623749784413e-05,
+          "p_neutral": 0.9994710900508859,
+          "p_contra": 0.0004834753253642005
+        },
+        {
+          "premise_index": 22,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated wit",
+          "full_premise": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model.",
+          "p_entail": 0.0007742407948374033,
+          "p_neutral": 0.9989667474097714,
+          "p_contra": 0.00025901179539108467
+        },
+        {
+          "premise_index": 23,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new docu",
+          "full_premise": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new document to the index makes that information available on the very next query.",
+          "p_entail": 0.0006617479771074439,
+          "p_neutral": 0.9992391465499619,
+          "p_contra": 9.910547293061956e-05
+        },
+        {
+          "premise_index": 24,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk.",
+          "p_entail": 0.00010436542294177764,
+          "p_neutral": 0.042971536120700086,
+          "p_contra": 0.9569240984563583
+        },
+        {
+          "premise_index": 25,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error",
+          "full_premise": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better.",
+          "p_entail": 0.0011497359436753404,
+          "p_neutral": 0.35430907086164126,
+          "p_contra": 0.6445411931946834
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "full_premise": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better. SQuAD 2.0 is useful for evaluating abstention because roughly one third of its questions are deliberately unanswerable from the accompanying paragraph, providing ground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.4638434433952126,
+          "p_neutral": 0.3640055147250576,
+          "p_contra": 0.17215104187972982
+        },
+        {
+          "premise_index": 27,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the ret",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the retrieved context. Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator.",
+          "p_entail": 0.028203118020413514,
+          "p_neutral": 0.007672691874421377,
+          "p_contra": 0.9641241901051651
+        },
+        {
+          "premise_index": 28,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved",
+          "full_premise": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation.",
+          "p_entail": 7.43816595698261e-06,
+          "p_neutral": 7.33435391780538e-05,
+          "p_contra": 0.9999192182948651
+        },
+        {
+          "premise_index": 29,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retrie",
+          "full_premise": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation. Contextual relevancy needs only the query and the passages, so it can be computed before generation.",
+          "p_entail": 1.9359613052788868e-05,
+          "p_neutral": 0.00016213737410031802,
+          "p_contra": 0.9998185030128468
+        }
+      ]
+    },
+    {
+      "claim_index": 4,
+      "raw_sentence": "Retrieval \u2014 query embeddings are matched to the nearest chunks using cosine similarity. 5.",
+      "cleaned_hypothesis": "Retrieval \u2014 query embeddings are matched to the nearest chunks using cosine similarity. 5.",
+      "best_premise": {
+        "index": 13,
+        "type": "window",
+        "origin": 0,
+        "snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+        "p_entail": 0.9977179092947892,
+        "p_neutral": 0.002164859638308307,
+        "p_contra": 0.00011723106690250173
+      },
+      "effective_contra": 0.00011723106690250173,
+      "is_supported": true,
+      "is_contradicted": false,
+      "veto_trigger": null,
+      "veto_rule_used": "best_premise (p_entail >= 0.5)",
+      "top_3_premises": [
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "p_entail": 0.9977179092947892,
+          "p_neutral": 0.002164859638308307,
+          "p_contra": 0.00011723106690250173
+        },
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "p_entail": 0.9968022033216589,
+          "p_neutral": 0.002910199705617828,
+          "p_contra": 0.0002875969727233771
+        },
+        {
+          "premise_index": 12,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, us",
+          "p_entail": 0.9928414252505341,
+          "p_neutral": 0.005081473414174892,
+          "p_contra": 0.002077101335291073
+        }
+      ],
+      "all_pairs": [
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline  \nA conventional RAG pipeline has five stages:  \n1. **Ingestion** \u2014 documents are loaded and normalised into plain text.\n2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000\ncharacters, usually with some overlap so a sentence spanning a boundary is not\nlost.\n3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as\nall-MiniLM-L6-v2, which produces 384-dimensional embeddings.\n4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest\nchunks are found by cosine similarity, usually via an approximate index such as\nHNSW.\n5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language\nmodel produces the answer.",
+          "p_entail": 0.9968022033216589,
+          "p_neutral": 0.002910199705617828,
+          "p_contra": 0.0002875969727233771
+        },
+        {
+          "premise_index": 1,
+          "origin_index": 1,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates   Retrieval reduces hallucination but does not eliminate it. Three distinct failu",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates  \nRetrieval reduces hallucination but does not eliminate it. Three distinct failure\nmodes are worth separating.  \nFirst, **retrieval failure**: the corpus simply does not contain the answer. A\nsimilarity search always returns its top-k nearest neighbours, so the generator\nreceives passages regardless of whether any of them are relevant. Nearest does not\nmean sufficient.  \nSecond, **grounding failure**: the correct passage is retrieved but the model still\nproduces an unsupported statement, filling a gap from parametric memory rather than\nadmitting the gap exists.  \nThird, **conflict**: the model's output directly contradicts the retrieved passage.  \nThe RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0008209209191953761,
+          "p_neutral": 0.9956537317632411,
+          "p_contra": 0.003525347317563504
+        },
+        {
+          "premise_index": 2,
+          "origin_index": 2,
+          "premise_type": "passage",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes   ## Unit 1 \u2014 What RAG Is   Retrieval-Augmented Generation (RAG) combines",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes  \n## Unit 1 \u2014 What RAG Is  \nRetrieval-Augmented Generation (RAG) combines a parametric language model with a\nnon-parametric external memory. Instead of relying only on weights learned during\npre-training, the system retrieves relevant passages from a document collection at\nquery time and conditions generation on those passages. The approach was introduced\nby Lewis et al. in 2020.  \nThe immediate benefit is that the knowledge base can be updated without retraining\nthe model. Adding a new document to the index makes that information available on the\nvery next query.",
+          "p_entail": 0.00013466334360431325,
+          "p_neutral": 0.999635003767214,
+          "p_contra": 0.0002303328891817475
+        },
+        {
+          "premise_index": 3,
+          "origin_index": 3,
+          "premise_type": "passage",
+          "premise_snippet": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*, where a claim is simply absent from the",
+          "full_premise": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,\nwhere a claim is simply absent from the source, and *Evident Conflict*, where a claim\ndisagrees with the source. Evident Conflict is considered the more severe failure.",
+          "p_entail": 9.497472116067443e-05,
+          "p_neutral": 0.9996921638888783,
+          "p_contra": 0.00021286138996116062
+        },
+        {
+          "premise_index": 4,
+          "origin_index": 4,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction   A model that abstains when uncertain is performing selective prediction. Performance ",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction  \nA model that abstains when uncertain is performing selective prediction. Performance\nis described by a risk\u2013coverage curve: coverage is the fraction of questions\nanswered, and risk is the error rate among those answered. Lowering the confidence\nthreshold answers more questions at higher risk. The area under the risk\u2013coverage\ncurve summarises the trade-off in a single number, where lower is better.  \nSQuAD 2.0 is useful for evaluating abstention because roughly one third of its\nquestions are deliberately unanswerable from the accompanying paragraph, providing\nground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.0004492436001776286,
+          "p_neutral": 0.99209878589109,
+          "p_contra": 0.007451970508732287
+        },
+        {
+          "premise_index": 5,
+          "origin_index": 5,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics   Faithfulness measures whether every claim in the generated answer is supported by the r",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics  \nFaithfulness measures whether every claim in the generated answer is supported by the\nretrieved context. Answer relevancy measures whether the answer addresses the\nquestion. Contextual relevancy measures whether the retrieved passages are pertinent\nto the query, and is a property of the retriever rather than the generator.  \nBecause faithfulness requires an answer to already exist, it can only be computed\nafter generation. Contextual relevancy needs only the query and the passages, so it\ncan be computed before generation.",
+          "p_entail": 8.985008225759344e-06,
+          "p_neutral": 0.0001068464247395932,
+          "p_contra": 0.9998841685670347
+        },
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded and normalised into plain text. 2.",
+          "p_entail": 0.0013530935115726927,
+          "p_neutral": 0.9961945896177976,
+          "p_contra": 0.002452316870629631
+        },
+        {
+          "premise_index": 7,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+          "full_premise": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost.",
+          "p_entail": 0.0001518849801243849,
+          "p_neutral": 0.42283404930449886,
+          "p_contra": 0.5770140657153767
+        },
+        {
+          "premise_index": 8,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so",
+          "full_premise": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3.",
+          "p_entail": 0.00010428947395965768,
+          "p_neutral": 0.9303672341690253,
+          "p_contra": 0.069528476357015
+        },
+        {
+          "premise_index": 9,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+          "full_premise": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings.",
+          "p_entail": 0.00010974838734374908,
+          "p_neutral": 0.9633431958526081,
+          "p_contra": 0.036547055760048144
+        },
+        {
+          "premise_index": 10,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dim",
+          "full_premise": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4.",
+          "p_entail": 6.678005415644698e-05,
+          "p_neutral": 0.9931950171731039,
+          "p_contra": 0.006738202772739709
+        },
+        {
+          "premise_index": 11,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+          "full_premise": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW.",
+          "p_entail": 0.06954976524188775,
+          "p_neutral": 0.8872888500168303,
+          "p_contra": 0.043161384741282005
+        },
+        {
+          "premise_index": 12,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, us",
+          "full_premise": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5.",
+          "p_entail": 0.9928414252505341,
+          "p_neutral": 0.005081473414174892,
+          "p_contra": 0.002077101335291073
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "full_premise": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language model produces the answer.",
+          "p_entail": 0.9977179092947892,
+          "p_neutral": 0.002164859638308307,
+          "p_contra": 0.00011723106690250173
+        },
+        {
+          "premise_index": 14,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer.",
+          "p_entail": 0.0005802052098827906,
+          "p_neutral": 0.9812028801886328,
+          "p_contra": 0.018216914601484478
+        },
+        {
+          "premise_index": 15,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the ",
+          "full_premise": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant.",
+          "p_entail": 0.0001331539318506138,
+          "p_neutral": 0.07419711323135535,
+          "p_contra": 0.925669732836794
+        },
+        {
+          "premise_index": 16,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-",
+          "full_premise": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient.",
+          "p_entail": 0.0021540609910220532,
+          "p_neutral": 0.9275256167942898,
+          "p_contra": 0.07032032221468815
+        },
+        {
+          "premise_index": 17,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whethe",
+          "full_premise": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists.",
+          "p_entail": 0.0007014188102982305,
+          "p_neutral": 0.9905267646801821,
+          "p_contra": 0.008771816509519652
+        },
+        {
+          "premise_index": 18,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still pr",
+          "full_premise": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage.",
+          "p_entail": 0.0005326607546194675,
+          "p_neutral": 0.9947250924157021,
+          "p_contra": 0.004742246829678502
+        },
+        {
+          "premise_index": 19,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, f",
+          "full_premise": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage. The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0006705287830356094,
+          "p_neutral": 0.9972682903178162,
+          "p_contra": 0.002061180899148171
+        },
+        {
+          "premise_index": 20,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a p",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a parametric language model with a non-parametric external memory. Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al.",
+          "p_entail": 5.220882172736367e-05,
+          "p_neutral": 0.9995866449840429,
+          "p_contra": 0.00036114619422984734
+        },
+        {
+          "premise_index": 21,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document c",
+          "full_premise": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al. in 2020.",
+          "p_entail": 7.131372365906109e-05,
+          "p_neutral": 0.9992078988833405,
+          "p_contra": 0.0007207873930005538
+        },
+        {
+          "premise_index": 22,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated wit",
+          "full_premise": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model.",
+          "p_entail": 0.0004107164348819838,
+          "p_neutral": 0.998661123928725,
+          "p_contra": 0.0009281596363929579
+        },
+        {
+          "premise_index": 23,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new docu",
+          "full_premise": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new document to the index makes that information available on the very next query.",
+          "p_entail": 0.0010117349772216493,
+          "p_neutral": 0.9961258087615149,
+          "p_contra": 0.0028624562612634312
+        },
+        {
+          "premise_index": 24,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk.",
+          "p_entail": 4.5589568773249344e-05,
+          "p_neutral": 0.008189755661459156,
+          "p_contra": 0.9917646547697676
+        },
+        {
+          "premise_index": 25,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error",
+          "full_premise": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better.",
+          "p_entail": 0.0001027204524047278,
+          "p_neutral": 0.19338844142770492,
+          "p_contra": 0.8065088381198904
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "full_premise": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better. SQuAD 2.0 is useful for evaluating abstention because roughly one third of its questions are deliberately unanswerable from the accompanying paragraph, providing ground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.0024316262787001286,
+          "p_neutral": 0.1287687792523221,
+          "p_contra": 0.8687995944689778
+        },
+        {
+          "premise_index": 27,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the ret",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the retrieved context. Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator.",
+          "p_entail": 5.683500533038909e-05,
+          "p_neutral": 0.01902996523097319,
+          "p_contra": 0.9809131997636965
+        },
+        {
+          "premise_index": 28,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved",
+          "full_premise": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation.",
+          "p_entail": 8.99098190893382e-06,
+          "p_neutral": 0.00015030851463303374,
+          "p_contra": 0.999840700503458
+        },
+        {
+          "premise_index": 29,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retrie",
+          "full_premise": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation. Contextual relevancy needs only the query and the passages, so it can be computed before generation.",
+          "p_entail": 1.6781757119066783e-05,
+          "p_neutral": 0.0001595027999306891,
+          "p_contra": 0.9998237154429503
+        }
+      ]
+    },
+    {
+      "claim_index": 5,
+      "raw_sentence": "Generation \u2014 retrieved chunks are placed in a prompt for a language model to produce an answer [1].",
+      "cleaned_hypothesis": "Generation \u2014 retrieved chunks are placed in a prompt for a language model to produce an answer [1].",
+      "best_premise": {
+        "index": 0,
+        "type": "passage",
+        "origin": 0,
+        "snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+        "p_entail": 0.11776180065717431,
+        "p_neutral": 0.8820652945211089,
+        "p_contra": 0.00017290482171677818
+      },
+      "effective_contra": 0.9997541773150579,
+      "is_supported": false,
+      "is_contradicted": true,
+      "veto_trigger": {
+        "premise_index": 5,
+        "origin_index": 5,
+        "premise_type": "passage",
+        "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics   Faithfulness measures whether every claim in the generated answer is supported by the r",
+        "full_premise": "## Unit 4 \u2014 Evaluation Metrics  \nFaithfulness measures whether every claim in the generated answer is supported by the\nretrieved context. Answer relevancy measures whether the answer addresses the\nquestion. Contextual relevancy measures whether the retrieved passages are pertinent\nto the query, and is a property of the retriever rather than the generator.  \nBecause faithfulness requires an answer to already exist, it can only be computed\nafter generation. Contextual relevancy needs only the query and the passages, so it\ncan be computed before generation.",
+        "p_entail": 1.2097047443883162e-05,
+        "p_neutral": 0.00023372563749818903,
+        "p_contra": 0.9997541773150579
+      },
+      "veto_rule_used": "worst_case_across_all_premises (max contra on premise 5: passage)",
+      "top_3_premises": [
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "p_entail": 0.11776180065717431,
+          "p_neutral": 0.8820652945211089,
+          "p_contra": 0.00017290482171677818
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "p_entail": 0.008532736676406957,
+          "p_neutral": 0.9914290355039493,
+          "p_contra": 3.8227819643786665e-05
+        },
+        {
+          "premise_index": 17,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whethe",
+          "p_entail": 0.004897196328830062,
+          "p_neutral": 0.9440815732922607,
+          "p_contra": 0.05102123037890926
+        }
+      ],
+      "all_pairs": [
+        {
+          "premise_index": 0,
+          "origin_index": 0,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline   A conventional RAG pipeline has five stages:   1. **Ingestion** \u2014 documents are load",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline  \nA conventional RAG pipeline has five stages:  \n1. **Ingestion** \u2014 documents are loaded and normalised into plain text.\n2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000\ncharacters, usually with some overlap so a sentence spanning a boundary is not\nlost.\n3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as\nall-MiniLM-L6-v2, which produces 384-dimensional embeddings.\n4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest\nchunks are found by cosine similarity, usually via an approximate index such as\nHNSW.\n5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language\nmodel produces the answer.",
+          "p_entail": 0.11776180065717431,
+          "p_neutral": 0.8820652945211089,
+          "p_contra": 0.00017290482171677818
+        },
+        {
+          "premise_index": 1,
+          "origin_index": 1,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates   Retrieval reduces hallucination but does not eliminate it. Three distinct failu",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates  \nRetrieval reduces hallucination but does not eliminate it. Three distinct failure\nmodes are worth separating.  \nFirst, **retrieval failure**: the corpus simply does not contain the answer. A\nsimilarity search always returns its top-k nearest neighbours, so the generator\nreceives passages regardless of whether any of them are relevant. Nearest does not\nmean sufficient.  \nSecond, **grounding failure**: the correct passage is retrieved but the model still\nproduces an unsupported statement, filling a gap from parametric memory rather than\nadmitting the gap exists.  \nThird, **conflict**: the model's output directly contradicts the retrieved passage.  \nThe RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0011230642022222017,
+          "p_neutral": 0.9963288782166835,
+          "p_contra": 0.0025480575810942346
+        },
+        {
+          "premise_index": 2,
+          "origin_index": 2,
+          "premise_type": "passage",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes   ## Unit 1 \u2014 What RAG Is   Retrieval-Augmented Generation (RAG) combines",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes  \n## Unit 1 \u2014 What RAG Is  \nRetrieval-Augmented Generation (RAG) combines a parametric language model with a\nnon-parametric external memory. Instead of relying only on weights learned during\npre-training, the system retrieves relevant passages from a document collection at\nquery time and conditions generation on those passages. The approach was introduced\nby Lewis et al. in 2020.  \nThe immediate benefit is that the knowledge base can be updated without retraining\nthe model. Adding a new document to the index makes that information available on the\nvery next query.",
+          "p_entail": 0.00023496657198813288,
+          "p_neutral": 0.9996334976586954,
+          "p_contra": 0.0001315357693165343
+        },
+        {
+          "premise_index": 3,
+          "origin_index": 3,
+          "premise_type": "passage",
+          "premise_snippet": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*, where a claim is simply absent from the",
+          "full_premise": "The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,\nwhere a claim is simply absent from the source, and *Evident Conflict*, where a claim\ndisagrees with the source. Evident Conflict is considered the more severe failure.",
+          "p_entail": 0.0001659037720954352,
+          "p_neutral": 0.9996113455732903,
+          "p_contra": 0.00022275065461425621
+        },
+        {
+          "premise_index": 4,
+          "origin_index": 4,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction   A model that abstains when uncertain is performing selective prediction. Performance ",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction  \nA model that abstains when uncertain is performing selective prediction. Performance\nis described by a risk\u2013coverage curve: coverage is the fraction of questions\nanswered, and risk is the error rate among those answered. Lowering the confidence\nthreshold answers more questions at higher risk. The area under the risk\u2013coverage\ncurve summarises the trade-off in a single number, where lower is better.  \nSQuAD 2.0 is useful for evaluating abstention because roughly one third of its\nquestions are deliberately unanswerable from the accompanying paragraph, providing\nground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.0007648276894150319,
+          "p_neutral": 0.9914235771763432,
+          "p_contra": 0.0078115951342418695
+        },
+        {
+          "premise_index": 5,
+          "origin_index": 5,
+          "premise_type": "passage",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics   Faithfulness measures whether every claim in the generated answer is supported by the r",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics  \nFaithfulness measures whether every claim in the generated answer is supported by the\nretrieved context. Answer relevancy measures whether the answer addresses the\nquestion. Contextual relevancy measures whether the retrieved passages are pertinent\nto the query, and is a property of the retriever rather than the generator.  \nBecause faithfulness requires an answer to already exist, it can only be computed\nafter generation. Contextual relevancy needs only the query and the passages, so it\ncan be computed before generation.",
+          "p_entail": 1.2097047443883162e-05,
+          "p_neutral": 0.00023372563749818903,
+          "p_contra": 0.9997541773150579
+        },
+        {
+          "premise_index": 6,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded a",
+          "full_premise": "## Unit 2 \u2014 The Standard Pipeline A conventional RAG pipeline has five stages: 1. **Ingestion** \u2014 documents are loaded and normalised into plain text. 2.",
+          "p_entail": 0.00042258878082250344,
+          "p_neutral": 0.9984197364258952,
+          "p_contra": 0.0011576747932822253
+        },
+        {
+          "premise_index": 7,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into pas",
+          "full_premise": "**Ingestion** \u2014 documents are loaded and normalised into plain text. 2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost.",
+          "p_entail": 5.573599510881381e-05,
+          "p_neutral": 0.7195305140461599,
+          "p_contra": 0.28041374995873125
+        },
+        {
+          "premise_index": 8,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so",
+          "full_premise": "2. **Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3.",
+          "p_entail": 3.206533874375179e-05,
+          "p_neutral": 0.8857401420913823,
+          "p_contra": 0.11422779256987402
+        },
+        {
+          "premise_index": 9,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a ",
+          "full_premise": "**Chunking** \u2014 long documents are split into passages, typically 200 to 1000 characters, usually with some overlap so a sentence spanning a boundary is not lost. 3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings.",
+          "p_entail": 4.164568744335615e-05,
+          "p_neutral": 0.063229548157181,
+          "p_contra": 0.9367288061553756
+        },
+        {
+          "premise_index": 10,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dim",
+          "full_premise": "3. **Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4.",
+          "p_entail": 3.9640725300720145e-05,
+          "p_neutral": 0.9278723538933373,
+          "p_contra": 0.07208800538136201
+        },
+        {
+          "premise_index": 11,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimens",
+          "full_premise": "**Embedding** \u2014 each chunk is mapped to a dense vector by an encoder such as all-MiniLM-L6-v2, which produces 384-dimensional embeddings. 4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW.",
+          "p_entail": 5.649597956549336e-05,
+          "p_neutral": 0.9940999205230541,
+          "p_contra": 0.0058435834973803984
+        },
+        {
+          "premise_index": 12,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, us",
+          "full_premise": "4. **Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5.",
+          "p_entail": 5.808800204116418e-05,
+          "p_neutral": 0.99677898084324,
+          "p_contra": 0.003162931154718847
+        },
+        {
+          "premise_index": 13,
+          "origin_index": 0,
+          "premise_type": "window",
+          "premise_snippet": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usual",
+          "full_premise": "**Retrieval** \u2014 the query is embedded with the same encoder and the nearest chunks are found by cosine similarity, usually via an approximate index such as HNSW. 5. **Generation** \u2014 the retrieved chunks are placed in the prompt and a language model produces the answer.",
+          "p_entail": 0.008532736676406957,
+          "p_neutral": 0.9914290355039493,
+          "p_contra": 3.8227819643786665e-05
+        },
+        {
+          "premise_index": 14,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure",
+          "full_premise": "## Unit 3 \u2014 Why RAG Still Hallucinates Retrieval reduces hallucination but does not eliminate it. Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer.",
+          "p_entail": 0.000515198472418297,
+          "p_neutral": 0.999051810015904,
+          "p_contra": 0.000432991511677717
+        },
+        {
+          "premise_index": 15,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the ",
+          "full_premise": "Three distinct failure modes are worth separating. First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant.",
+          "p_entail": 0.00043315471622157266,
+          "p_neutral": 0.9976863841775053,
+          "p_contra": 0.0018804611062732109
+        },
+        {
+          "premise_index": 16,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-",
+          "full_premise": "First, **retrieval failure**: the corpus simply does not contain the answer. A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient.",
+          "p_entail": 0.0011841837782391041,
+          "p_neutral": 0.9902288274897934,
+          "p_contra": 0.008586988731967636
+        },
+        {
+          "premise_index": 17,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whethe",
+          "full_premise": "A similarity search always returns its top-k nearest neighbours, so the generator receives passages regardless of whether any of them are relevant. Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists.",
+          "p_entail": 0.004897196328830062,
+          "p_neutral": 0.9440815732922607,
+          "p_contra": 0.05102123037890926
+        },
+        {
+          "premise_index": 18,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still pr",
+          "full_premise": "Nearest does not mean sufficient. Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage.",
+          "p_entail": 0.0006649322818170023,
+          "p_neutral": 0.9952205447662865,
+          "p_contra": 0.004114522951896442
+        },
+        {
+          "premise_index": 19,
+          "origin_index": 1,
+          "premise_type": "window",
+          "premise_snippet": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, f",
+          "full_premise": "Second, **grounding failure**: the correct passage is retrieved but the model still produces an unsupported statement, filling a gap from parametric memory rather than admitting the gap exists. Third, **conflict**: the model's output directly contradicts the retrieved passage. The RAGTruth dataset distinguishes the last two cases as *Baseless Information*,",
+          "p_entail": 0.0012415511710084227,
+          "p_neutral": 0.9975657299694934,
+          "p_contra": 0.0011927188594980734
+        },
+        {
+          "premise_index": 20,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a p",
+          "full_premise": "# Retrieval-Augmented Generation: Course Notes ## Unit 1 \u2014 What RAG Is Retrieval-Augmented Generation (RAG) combines a parametric language model with a non-parametric external memory. Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al.",
+          "p_entail": 0.00012875232784827497,
+          "p_neutral": 0.999735596019548,
+          "p_contra": 0.00013565165260383225
+        },
+        {
+          "premise_index": 21,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document c",
+          "full_premise": "Instead of relying only on weights learned during pre-training, the system retrieves relevant passages from a document collection at query time and conditions generation on those passages. The approach was introduced by Lewis et al. in 2020.",
+          "p_entail": 0.00010525426622077399,
+          "p_neutral": 0.9994994212031545,
+          "p_contra": 0.0003953245306246693
+        },
+        {
+          "premise_index": 22,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated wit",
+          "full_premise": "The approach was introduced by Lewis et al. in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model.",
+          "p_entail": 0.0008502563313924442,
+          "p_neutral": 0.9987253395993045,
+          "p_contra": 0.0004244040693031195
+        },
+        {
+          "premise_index": 23,
+          "origin_index": 2,
+          "premise_type": "window",
+          "premise_snippet": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new docu",
+          "full_premise": "in 2020. The immediate benefit is that the knowledge base can be updated without retraining the model. Adding a new document to the index makes that information available on the very next query.",
+          "p_entail": 0.0006411662879250041,
+          "p_neutral": 0.9987009985644322,
+          "p_contra": 0.0006578351476427603
+        },
+        {
+          "premise_index": 24,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is",
+          "full_premise": "## Unit 5 \u2014 Selective Prediction A model that abstains when uncertain is performing selective prediction. Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk.",
+          "p_entail": 0.0005555263009439159,
+          "p_neutral": 0.9885446761470732,
+          "p_contra": 0.010899797551982927
+        },
+        {
+          "premise_index": 25,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error",
+          "full_premise": "Performance is described by a risk\u2013coverage curve: coverage is the fraction of questions answered, and risk is the error rate among those answered. Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better.",
+          "p_entail": 0.000362904244928217,
+          "p_neutral": 0.9367503573804215,
+          "p_contra": 0.06288673837465031
+        },
+        {
+          "premise_index": 26,
+          "origin_index": 4,
+          "premise_type": "window",
+          "premise_snippet": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summaris",
+          "full_premise": "Lowering the confidence threshold answers more questions at higher risk. The area under the risk\u2013coverage curve summarises the trade-off in a single number, where lower is better. SQuAD 2.0 is useful for evaluating abstention because roughly one third of its questions are deliberately unanswerable from the accompanying paragraph, providing ground-truth labels for when a system should decline to answer.",
+          "p_entail": 0.0026971087268701215,
+          "p_neutral": 0.9712949403016663,
+          "p_contra": 0.02600795097146348
+        },
+        {
+          "premise_index": 27,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the ret",
+          "full_premise": "## Unit 4 \u2014 Evaluation Metrics Faithfulness measures whether every claim in the generated answer is supported by the retrieved context. Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator.",
+          "p_entail": 0.0020594097409144026,
+          "p_neutral": 0.9623156096231996,
+          "p_contra": 0.035624980635886004
+        },
+        {
+          "premise_index": 28,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved",
+          "full_premise": "Answer relevancy measures whether the answer addresses the question. Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation.",
+          "p_entail": 2.9806718803386776e-05,
+          "p_neutral": 0.02246361778547246,
+          "p_contra": 0.9775065754957242
+        },
+        {
+          "premise_index": 29,
+          "origin_index": 5,
+          "premise_type": "window",
+          "premise_snippet": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retrie",
+          "full_premise": "Contextual relevancy measures whether the retrieved passages are pertinent to the query, and is a property of the retriever rather than the generator. Because faithfulness requires an answer to already exist, it can only be computed after generation. Contextual relevancy needs only the query and the passages, so it can be computed before generation.",
+          "p_entail": 2.4905878526986225e-05,
+          "p_neutral": 0.0005495680314885811,
+          "p_contra": 0.9994255260899845
+        }
+      ]
+    }
+  ]
+}

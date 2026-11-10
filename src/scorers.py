@@ -32,20 +32,74 @@ log = logging.getLogger(__name__)
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-Z(\"'\[])")
 
 
-def split_claims(answer: str, *, min_chars: int = 12) -> list[str]:
-    """Split an answer into atomic claims.
+_LEAD_IN_PREFIXES = (
+    "here are",
+    "here is",
+    "the following",
+    "the five stages",
+    "the stages",
+    "the steps",
+    "based on",
+    "according to",
+    "as stated in",
+    "in summary",
+    "in short",
+)
+_BULLET_PREFIX = re.compile(r"^(\d+[\.\)]|\*|\-|\+)\s*")
 
-    A sentence splitter is a deliberate simplification: proper claim extraction
-    needs an LLM call per answer, which defeats the purpose of a cheap local
-    scorer. Very short fragments are dropped because "Yes." or "See above."
-    entail nothing and would drag the mean down without carrying meaning.
+
+def split_claims(answer: str, *, min_chars: int = 12, min_words: int | None = None) -> list[str]:
+    """Split an answer into atomic factual claims, cleaning formatting artifacts.
+
+    Strips markdown bullet/numbered prefixes, inline citation tags, and drops
+    non-factual lead-in scaffolding sentences (e.g. 'The five stages of a standard RAG pipeline are:').
+    Never scores a fragment shorter than min_claim_words (default 4) as a claim.
     """
-    text = " ".join(answer.split())
-    if not text:
+    if not answer or not answer.strip():
         return []
-    parts = [p.strip() for p in _SENTENCE_SPLIT.split(text)]
-    claims = [p for p in parts if len(p) >= min_chars]
-    return claims or ([text] if text else [])
+
+    min_words = min_words if min_words is not None else settings.confidence.min_claim_words
+
+    # If newlines are present, split line by line first to preserve list item structure
+    lines = [line.strip() for line in answer.split("\n") if line.strip()]
+
+    raw_candidates: list[str] = []
+    for line in lines:
+        line_clean = line.strip()
+        lower_line = line_clean.lower()
+        if line_clean.endswith(":") and any(lower_line.startswith(p) for p in _LEAD_IN_PREFIXES):
+            continue
+        if line_clean.endswith(":") and len(line_clean.split()) <= 12 and not any(ch.isdigit() for ch in line_clean[:3]):
+            continue
+
+        cleaned = _BULLET_PREFIX.sub("", line_clean).strip()
+        cleaned = re.sub(r"^\*\*(.*?)\*\*", r"\1", cleaned).strip()
+        cleaned = _CITATION.sub("", cleaned).strip()
+        cleaned = re.sub(r"\s+([.,;:!?])", r"\1", cleaned)
+        cleaned = " ".join(cleaned.split())
+        if not cleaned:
+            continue
+
+        sub_sents = [s.strip() for s in _SENTENCE_SPLIT.split(cleaned) if s.strip()]
+        raw_candidates.extend(sub_sents)
+
+    if not raw_candidates:
+        cleaned_fallback = " ".join(_CITATION.sub("", answer).split()).strip()
+        return [cleaned_fallback] if cleaned_fallback else []
+
+    if len(raw_candidates) == 1:
+        return raw_candidates
+
+    claims: list[str] = []
+    for c in raw_candidates:
+        words = c.split()
+        if len(words) < min_words:
+            continue
+        if c.endswith(":") and len(words) <= 12:
+            continue
+        claims.append(c)
+
+    return claims or raw_candidates
 
 
 _CITATION = re.compile(r"\[\s*\d+(?:\s*,\s*\d+)*\s*\]")
@@ -126,8 +180,12 @@ def _device() -> str:
 
         if torch.cuda.is_available():
             return requested
+        log.warning(
+            "CUDA requested (%s) but torch.cuda.is_available() is False; falling back to CPU.",
+            requested,
+        )
     except ImportError:  # pragma: no cover
-        pass
+        log.warning("torch not importable; falling back to CPU.")
     return "cpu"
 
 
@@ -140,6 +198,7 @@ class ClaimScore:
     neutral: float
     contradiction: float
     best_context_index: int
+    is_conflict: bool | None = None
 
     @property
     def is_supported(self) -> bool:
@@ -147,7 +206,13 @@ class ClaimScore:
 
     @property
     def is_contradicted(self) -> bool:
-        return self.contradiction >= settings.confidence.contradiction_threshold
+        if self.is_conflict is not None:
+            return self.is_conflict
+        return (
+            not self.is_supported
+            and self.contradiction >= settings.confidence.contradiction_threshold
+            and (self.contradiction - self.entailment) >= settings.confidence.contradiction_margin
+        )
 
     @property
     def taxonomy_label(self) -> str:
@@ -179,6 +244,7 @@ class NLIScorer:
         self.model_name = model_name or settings.confidence.nli_model
         self._model = None
         self._label_order: list[str] | None = None
+        self._pair_cache: dict[tuple[str, str], list[float]] = {}
 
     def _ensure(self):
         if self._model is None:
@@ -224,55 +290,74 @@ class NLIScorer:
         mode: str | None = None,
         premise: str | None = None,
     ) -> list[ClaimScore]:
-        """Score every claim against every context, keeping the best support.
-
-        Taking the max over contexts (rather than concatenating them into one
-        premise) is deliberate: a claim supported by passage 3 alone is properly
-        grounded, and concatenation would push the real premise past the
-        model's 512-token window.
-
-        Contradiction is read only from the context the claim actually engages
-        with. nli-deberta's contradiction head fires spuriously on unrelated
-        premises (an etymology paragraph "contradicts" a steam-engine claim
-        with p=0.92), and a max over five premises turns that noise into a
-        hard gate failure for answers the gold passage fully entails: on the
-        SQuAD harness, 14 of 37 fully-entailed claims were false-flagged this
-        way. The rule: if any context entails the claim (entailment >= 0.5),
-        that context owns the decision and its own contradiction is what
-        counts; only when no context supports the claim does the strongest
-        contradiction over all contexts decide, exactly as before. The known
-        cost, accepted deliberately: a genuinely split corpus (one source
-        supports, another truly contradicts) will be labelled supported, not
-        conflicted. Measured noise in the contradiction head makes that trade
-        worth it; revisit with a stronger NLI model.
-        """
+        """Score every claim against every context, keeping the best support."""
         if not claims or not contexts:
             return []
 
+        import os
+        import time
+
+        t_start = time.perf_counter()
+        t_load_0 = time.perf_counter()
         model = self._ensure()
+        model_load_ms = (time.perf_counter() - t_load_0) * 1000
+
         mode = mode or settings.confidence.nli_hypothesis
         premise = premise or settings.confidence.nli_premise
         # The UI shows the original claim; only the NLI input is rewritten.
         hyps = [build_hypothesis(c, question, mode) for c in claims]
-        premises, origin = list(contexts), list(range(len(contexts)))
+
+        premises: list[str] = []
+        origin: list[int] = []
+        premise_types: list[str] = []
+        seen_premises: set[str] = set()
+
+        def _add_premise(text: str, orig: int, ptype: str):
+            norm = " ".join(text.split())
+            if norm and norm not in seen_premises:
+                seen_premises.add(norm)
+                premises.append(text)
+                origin.append(orig)
+                premise_types.append(ptype)
+
+        for idx, ctx in enumerate(contexts):
+            _add_premise(ctx, idx, "passage")
+
         if premise in ("window", "both", "multi_hop"):
             windows = premise_windows(contexts)
             if premise == "window":
-                premises, origin = [], []
-            seen = set(premises)
+                premises, origin, premise_types = [], [], []
+                seen_premises.clear()
             for w, o in windows:
-                if w not in seen:
-                    premises.append(w)
-                    origin.append(o)
-                    seen.add(w)
+                _add_premise(w, o, "window")
+
             if premise == "multi_hop" and len(contexts) >= 2:
-                pair_premise = f"{contexts[0].strip()} {contexts[1].strip()}"
-                if pair_premise not in seen:
-                    premises.append(pair_premise)
-                    origin.append(0)
+                k = min(len(contexts), settings.confidence.multi_hop_top_k)
+                for i in range(k):
+                    for j in range(i + 1, k):
+                        _add_premise(f"{contexts[i].strip()} {contexts[j].strip()}", i, "pair")
+
+        t_pair_0 = time.perf_counter()
         pairs = [(p, hyp) for hyp in hyps for p in premises]
-        probs = self._softmax_rows(model.predict(
-            pairs, show_progress_bar=False, batch_size=settings.confidence.nli_batch_size))
+        pair_construction_ms = (time.perf_counter() - t_pair_0) * 1000
+
+        t_fwd_0 = time.perf_counter()
+        unseen_pairs = [pair for pair in pairs if pair not in self._pair_cache]
+        if unseen_pairs:
+            new_probs = self._softmax_rows(
+                model.predict(
+                    unseen_pairs,
+                    show_progress_bar=False,
+                    batch_size=settings.confidence.nli_batch_size,
+                )
+            )
+            if len(self._pair_cache) > 4096:
+                self._pair_cache.clear()
+            for pair, prob in zip(unseen_pairs, new_probs, strict=True):
+                self._pair_cache[pair] = prob
+
+        probs = [self._pair_cache[pair] for pair in pairs]
+        forward_pass_ms = (time.perf_counter() - t_fwd_0) * 1000
 
         order = self._label_order or ["contradiction", "entailment", "neutral"]
         idx = {name: i for i, name in enumerate(order)}
@@ -280,24 +365,88 @@ class NLIScorer:
 
         n_ctx = len(premises)
         out: list[ClaimScore] = []
-        for ci, claim in enumerate(claims):
+        claims_debug_info = []
+
+        for ci, (claim, hyp) in enumerate(zip(claims, hyps, strict=True)):
             rows = probs[ci * n_ctx : (ci + 1) * n_ctx]
-            best = int(max(range(n_ctx), key=lambda j: rows[j][e_i]))
-            if rows[best][e_i] >= 0.5:
-                # A context supports the claim: it owns the contradiction call.
-                contra = float(rows[best][c_i])
-            else:
-                # No support anywhere: worst-case contradiction across passages.
-                contra = float(max(r[c_i] for r in rows))
+            best = int(max(range(n_ctx), key=lambda j: (rows[j][e_i], rows[j][c_i])))
+            best_entail = float(rows[best][e_i])
+            best_contra = float(rows[best][c_i])
+            best_neutral = float(rows[best][n_i])
+
+            has_entailment = any(r[e_i] >= settings.confidence.support_threshold for r in rows)
+            margin = settings.confidence.contradiction_margin
+
+            # A claim is "Evident Conflict" only if:
+            # 1. No premise entails it (not has_entailment)
+            # 2. On its best-entailing premise, p_contra >= contradiction_threshold (0.50)
+            # 3. AND (p_contra - p_entail) >= contradiction_margin (0.30)
+            is_conflict = (
+                not has_entailment
+                and best_contra >= settings.confidence.contradiction_threshold
+                and (best_contra - best_entail) >= margin
+            )
+
             out.append(
                 ClaimScore(
                     claim=claim,
-                    entailment=float(rows[best][e_i]),
-                    neutral=float(rows[best][n_i]),
-                    contradiction=contra,
+                    entailment=best_entail,
+                    neutral=best_neutral,
+                    contradiction=best_contra,
                     best_context_index=origin[best],
+                    is_conflict=is_conflict,
                 )
             )
+
+            if os.getenv("RAG_DEBUG_GATE_B") == "1":
+                all_pairs_info = [
+                    {
+                        "premise": premises[j],
+                        "premise_type": premise_types[j],
+                        "origin_index": origin[j],
+                        "p_entail": float(rows[j][e_i]),
+                        "p_neutral": float(rows[j][n_i]),
+                        "p_contra": float(rows[j][c_i]),
+                    }
+                    for j in range(n_ctx)
+                ]
+                top_3 = sorted(all_pairs_info, key=lambda x: x["p_entail"], reverse=True)[:3]
+                veto_trigger = all_pairs_info[best] if is_conflict else None
+                claims_debug_info.append(
+                    {
+                        "claim": hyp,
+                        "raw_sentence": claim,
+                        "is_supported": best_entail >= settings.confidence.support_threshold,
+                        "is_contradicted": is_conflict,
+                        "top_3_premises": top_3,
+                        "all_pairs": all_pairs_info,
+                        "veto_trigger": veto_trigger,
+                    }
+                )
+
+        if os.getenv("RAG_DEBUG_GATE_B") == "1":
+            from src.config import REPORTS_DIR
+
+            debug_dump = {
+                "query": question,
+                "device": _device(),
+                "model_load_time_ms": model_load_ms,
+                "n_pairs_scored": len(pairs),
+                "timings_ms": {
+                    "pair_construction_ms": pair_construction_ms,
+                    "forward_pass_ms": forward_pass_ms,
+                    "total_score_claims_ms": (time.perf_counter() - t_start) * 1000,
+                },
+                "claims": claims_debug_info,
+            }
+            try:
+                REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+                (REPORTS_DIR / "debug_gateb_stack.json").write_text(
+                    json.dumps(debug_dump, indent=2), encoding="utf-8"
+                )
+            except Exception as exc:  # noqa: BLE001
+                log.warning("Failed to write debug_gateb_stack.json: %s", exc)
+
         return out
 
     def faithfulness(

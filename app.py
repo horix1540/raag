@@ -1,11 +1,14 @@
 """Streamlit front end for the Confidence-Aware RAG Studio.
 
+Ink + Signal visual redesign: dark-first, calm, high-contrast, Linear/Vercel discipline.
+Full feature retention: all 4 diagnostic sample query cards, all telemetry, all metrics preserved.
 Run with:  streamlit run app.py
 """
 
 from __future__ import annotations
 
 import sys
+from html import escape
 from pathlib import Path
 
 import streamlit as st
@@ -32,6 +35,7 @@ CALIBRATED = {
     "nli_hypothesis": _fresh_conf.nli_hypothesis,
 }
 
+# The 4 Diagnostic Sample Queries with full text and diagnostic rationales
 SAMPLES = [
     (
         "Lists · Grounded Pass",
@@ -49,7 +53,7 @@ SAMPLES = [
         "Reasoning · Multi-Claim",
         "Why can faithfulness only be computed after generation?",
         "In the notes: tests multi-sentence explanation & claim verification.",
-        ui.BRAND,
+        ui.ACCENT,
     ),
     (
         "Out of Scope · Gate A Refusal",
@@ -60,9 +64,9 @@ SAMPLES = [
 ]
 
 CLAIM_BADGE = {
-    "supported": ("✅", "Supported (Entailed)", ui.PASS),
-    "evident_conflict": ("❌", "Evident Conflict (Contradicted)", ui.FAIL),
-    "baseless_information": ("⚠️", "Baseless Info (Not in Sources)", ui.WARN),
+    "supported": ("Supported (Entailed)", ui.PASS),
+    "evident_conflict": ("Evident Conflict (Contradicted)", ui.FAIL),
+    "baseless_information": ("Baseless Info (Not in Sources)", ui.WARN),
 }
 
 
@@ -78,17 +82,24 @@ def _reset_thresholds() -> None:
         st.session_state[f"cfg_{key}"] = CALIBRATED[key]
 
 
+def _set_sample_question(q: str) -> None:
+    """Safely set question and submitted state before widgets are instantiated."""
+    st.session_state["question"] = q
+    st.session_state["submitted"] = q
+
+
 def _sidebar() -> dict:
     for key, value in CALIBRATED.items():
         st.session_state.setdefault(f"cfg_{key}", value)
-    with st.sidebar:
-        st.markdown("### 🛡️ Navigation")
-        st.page_link("app.py", label="RAG Verification Studio", icon="🛡️")
-        st.page_link("pages/1_How_to_use.py", label="Architecture & Viva Guide", icon="📖")
-        st.page_link("pages/2_Monitoring_Dashboard.py", label="Telemetry & Audit Dashboard", icon="📊")
-        st.divider()
+    st.session_state.setdefault("ambient_effects", True)
 
-        st.markdown("### ⚙️ Execution Arm & Mode")
+    with st.sidebar:
+        st.html("<div class='sidebar-sec-label'>Navigation</div>")
+        st.page_link("app.py", label="RAG Verification Studio", icon=":material/shield:")
+        st.page_link("pages/1_How_to_use.py", label="Architecture & Viva Guide", icon=":material/menu_book:")
+        st.page_link("pages/2_Monitoring_Dashboard.py", label="Telemetry & Audit Dashboard", icon=":material/bar_chart:")
+
+        st.html("<div class='sidebar-sec-label'>Execution Arm & Mode</div>")
         exec_mode = st.radio(
             "Pipeline execution arm",
             [
@@ -98,6 +109,7 @@ def _sidebar() -> dict:
                 "Side-by-Side (Guarded vs. Baseline)",
             ],
             index=0,
+            label_visibility="collapsed",
             help="Compare Guarded mode against Prompt-Only (isolates prompt vs. gates per Project Review H3), "
             "Baseline Control, or run Guarded and Baseline side-by-side.",
         )
@@ -105,12 +117,12 @@ def _sidebar() -> dict:
         prompt_only = exec_mode == "Prompt-Only (No Gates · H3 Ablation)"
         compare_both = exec_mode == "Side-by-Side (Guarded vs. Baseline)"
 
-        st.markdown("### 🧠 Model & Gate Backends")
+        st.html("<div class='sidebar-sec-label'>Model & Gate Backends</div>")
         provider = st.selectbox(
             "Generator LLM provider",
             ["ollama", "groq", "gemini"],
             index=["ollama", "groq", "gemini"].index(settings.llm.provider),
-            help="Ollama runs locally (llama3.1:8b). Groq and Gemini use .env API keys.",
+            help="Ollama runs locally. Groq and Gemini use .env API keys.",
         )
         settings.llm.provider = provider  # type: ignore[assignment]
 
@@ -118,11 +130,11 @@ def _sidebar() -> dict:
             "Confidence verifier backend",
             ["nli", "llm", "both"],
             index=["nli", "llm", "both"].index(settings.confidence.scorer),
-            help="nli = fast local cross-encoders (~340 ms). llm = DeepEval judge. both = run & compare both.",
+            help="nli = fast local cross-encoders. llm = DeepEval judge. both = run & compare both.",
         )
         settings.confidence.scorer = scorer  # type: ignore[assignment]
 
-        if st.button("🔌 Test LLM Connection", use_container_width=True):
+        if st.button("Test LLM Connection", use_container_width=True):
             from src.llm import health_check
 
             ok, msg = health_check()
@@ -131,9 +143,9 @@ def _sidebar() -> dict:
             else:
                 st.error(msg)
 
-        with st.expander("🔬 Gate B v2 NLI Settings (M5)", expanded=False):
+        with st.expander("NLI Granularity & Hypotheses (M5)", expanded=False):
             st.caption(
-                "Gate B v2 scores claims against whole passages, 3-sentence windows, or multi-hop top-2 pairs."
+                "Gate B v2 scores claims against whole passages, 3-sentence windows, or multi-hop pairs."
             )
             premise_opts = ["both", "multi_hop", "window", "passage"]
             if st.session_state.get("cfg_nli_premise") not in premise_opts:
@@ -157,8 +169,8 @@ def _sidebar() -> dict:
             )
             settings.confidence.nli_hypothesis = hyp
 
-        with st.expander("🎚️ Calibrated Thresholds", expanded=False):
-            st.caption("Fitted on SQuAD 2.0 dev set (Youden's J for Gate A, F1 above contradiction cap for Gate B).")
+        with st.expander("Calibrated Gate Thresholds", expanded=False):
+            st.caption("Calibrated on SQuAD 2.0 (Gate A = 0.45, Gate B = 0.25, Composite = 0.33).")
             settings.confidence.gate_a_threshold = st.slider(
                 "Gate A · retrieval relevance",
                 0.0,
@@ -187,7 +199,7 @@ def _sidebar() -> dict:
                 use_container_width=True,
             )
 
-        with st.expander("📂 Corpus & Document Upload", expanded=False):
+        with st.expander("Corpus & Document Upload", expanded=False):
             st.caption("Upload PDF, DOCX, MD, or TXT files to `data/raw/` and re-index live.")
             uploaded = st.file_uploader(
                 "Add documents to index",
@@ -204,59 +216,94 @@ def _sidebar() -> dict:
                     _store.clear()
                 st.success(f"Indexed {len(uploaded)} new file(s) into '{settings.retrieval.collection_name}'.")
 
-        st.divider()
+        st.html("<div class='sidebar-sec-label'>Interface Preferences</div>")
+        ambient_enabled = st.toggle("Ambient cursor effects", value=st.session_state["ambient_effects"], key="ambient_effects")
+
+        st.html("<div style='height:0.75rem'></div>")
         index_slot = st.empty()
+
     return {
         "top_k": top_k,
         "baseline": baseline,
         "prompt_only": prompt_only,
         "compare_both": compare_both,
+        "ambient_enabled": ambient_enabled,
         "index_slot": index_slot,
     }
 
 
+def _index_count() -> int:
+    try:
+        return _store(settings.retrieval.collection_name)._collection.count()
+    except Exception:  # noqa: BLE001
+        return 0
+
+
 def _index_status(slot) -> None:
     try:
-        count = _store(settings.retrieval.collection_name)._collection.count()
+        count = _index_count()
         if count:
-            slot.caption(
-                f"🟢 **{count} passages indexed** in `{settings.retrieval.collection_name}` "
-                f"· Premise `{settings.confidence.nli_premise}`"
+            slot.html(
+                f"<div style='font-family:JetBrains Mono,monospace;font-size:0.72rem;color:var(--text-muted);padding:0.4rem 0'>"
+                f"<span style='color:var(--pass)'>●</span> <strong>{count}</strong> passages indexed in <code>{settings.retrieval.collection_name}</code>"
+                f"</div>"
             )
         else:
             slot.warning(
-                "The index is empty. Upload files in the sidebar or run "
-                "`python scripts/build_index.py --reset`."
+                "The index is empty. Upload files in the sidebar or run `python scripts/build_index.py --reset`."
             )
     except Exception as exc:  # noqa: BLE001
         slot.error(f"Index unavailable: {exc}")
 
 
 def _ask_form() -> str | None:
-    st.markdown("##### ⚡ Diagnostic Sample Queries")
+    """Render Diagnostic Sample Query cards and the command bar input."""
+    st.html(
+        "<div style='display:flex;align-items:center;justify-content:space-between;margin:0.2rem 0 0.55rem 0'>"
+        "<span style='font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint)'>"
+        "Diagnostic Sample Queries"
+        "</span>"
+        "<span style='font-size:0.73rem;color:var(--text-muted)'>"
+        "Select a pre-calibrated scenario to test pipeline gates"
+        "</span>"
+        "</div>"
+    )
+
+    # Render all 4 Diagnostic Sample Query cards in 2 rows of 2 columns
     for row in (SAMPLES[:2], SAMPLES[2:]):
         cols = st.columns(2)
         for col, (tag, q, why, colour) in zip(cols, row, strict=True):
             with col:
                 ui.sample_card(tag, q, why, colour)
-                if st.button(
-                    f"Run diagnostic · {tag.split('·')[0].strip()} →",
-                    key=f"sample_{tag}",
+                clean_tag = tag.split("·")[0].strip() if "·" in tag else tag
+                st.button(
+                    f"Ask this · {clean_tag} →",
+                    key=f"btn_sample_{tag}",
+                    on_click=_set_sample_question,
+                    args=(q,),
                     use_container_width=True,
-                ):
-                    st.session_state["question"] = q
-                    st.session_state["submitted"] = q
+                )
 
-    st.markdown("<div style='height:0.35rem'></div>", unsafe_allow_html=True)
-    with st.form("ask", clear_on_submit=False, border=True):
+    st.html(
+        "<div style='margin:1.1rem 0 0.45rem 0;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint)'>"
+        "Or ask your own question against indexed documents:"
+        "</div>"
+    )
+
+    with st.form("ask", clear_on_submit=False, border=False):
         q_col, b_col = st.columns([5, 1], vertical_alignment="bottom")
-        question = q_col.text_input(
-            "Ask a question against the indexed knowledge base",
-            key="question",
-            placeholder="e.g. Why does RAG still hallucinate even when relevant passages are retrieved?",
-        )
-        if b_col.form_submit_button("Verify & Ask", type="primary", use_container_width=True):
-            st.session_state["submitted"] = question.strip()
+        with q_col:
+            question = st.text_input(
+                "Ask a question against the indexed knowledge base",
+                key="question",
+                placeholder="e.g. What are the five stages of a standard RAG pipeline? (or press / to focus)",
+                label_visibility="collapsed",
+            )
+        with b_col:
+            submitted = st.form_submit_button("Verify & Ask", type="primary", use_container_width=True)
+            if submitted:
+                st.session_state["submitted"] = question.strip()
+
     return st.session_state.get("submitted") or None
 
 
@@ -331,98 +378,131 @@ def _run(question: str, opts: dict):
     return result
 
 
-def _render_answer(result, baseline: bool, prompt_only: bool) -> None:
+def _render_result_split(result, baseline: bool, prompt_only: bool) -> None:
+    """Render the 62/38 result area: Left = System Response & KPIs, Right = Verification Inspector."""
     rep = result.confidence
-    if baseline:
-        ui.verdict_banner(
-            "answer",
-            f"Baseline control arm active: gates were measured (Composite {rep.composite:.2f}) but not enforced.",
-        )
-    elif prompt_only:
-        ui.verdict_banner(
-            rep.verdict,
-            f"Prompt-only arm (H3 ablation): abstention prompt active; gates measured (Composite {rep.composite:.2f}) "
-            "but not enforced.",
-        )
-    else:
-        ui.verdict_banner(rep.verdict, rep.explanation)
+    left_col, right_col = st.columns([62, 38])
 
-    k1, k2, k3, k4 = st.columns(4)
-    with k1:
-        ui.kpi_card(
-            "Gate A · Relevance",
-            f"{rep.gate_a.score:.3f}",
-            f"Threshold ≥ {settings.confidence.gate_a_threshold:.2f}",
-            ui.PASS if rep.gate_a.passed else ui.FAIL,
-        )
-    with k2:
-        gb_val = f"{rep.gate_b.score:.3f}" if rep.gate_b else "Skipped"
-        gb_col = (ui.PASS if rep.gate_b.passed else ui.FAIL) if rep.gate_b else ui.SKIP
-        ui.kpi_card(
-            "Gate B · Faithfulness",
-            gb_val,
-            f"Threshold ≥ {settings.confidence.gate_b_threshold:.2f} ({settings.confidence.nli_premise})",
-            gb_col,
-        )
-    with k3:
-        comp_col = (
-            ui.PASS
-            if not rep.abstained and rep.composite >= settings.confidence.composite_threshold
-            else (ui.WARN if not rep.abstained else ui.FAIL)
-        )
-        ui.kpi_card(
-            "Harmonic Composite",
-            f"{rep.composite:.3f}",
-            f"Weights 0.4 A / 0.6 B (≥ {settings.confidence.composite_threshold:.2f})",
-            comp_col,
-        )
-    with k4:
-        ui.kpi_card(
-            "End-to-End Latency",
-            f"{result.total_ms / 1000:.2f} s",
-            f"Gates: {(rep.gate_a.latency_ms + (rep.gate_b.latency_ms if rep.gate_b else 0.0)):.0f} ms total",
-            ui.BRAND,
-        )
-
-    st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
-    formatted_ans = ui.format_answer_html(result.displayed_answer)
-    st.html(
-        f"<div class='cr-answer-box'>"
-        f"<div class='cr-answer-hdr'><span>System Response</span>"
-        f"<span>Model: {settings.llm.provider}:{settings.llm.generator_model}</span></div>"
-        f"<div class='cr-answer-body'>{formatted_ans}</div>"
-        f"</div>"
-    )
-    if rep.abstained and result.answer and not (baseline or prompt_only):
-        with st.expander("🔍 Inspect withheld LLM draft (suppressed by Gate B)"):
-            st.caption(
-                "The generator produced this draft, but Gate B detected unsupported or contradicted "
-                "claims and blocked it from reaching the user."
+    with left_col:
+        # 1. Verdict Banner
+        if baseline:
+            ui.verdict_banner(
+                "answer",
+                f"Baseline control arm active: gates measured (Composite {rep.composite:.2f}) but not enforced.",
             )
-            st.write(result.answer)
+        elif prompt_only:
+            ui.verdict_banner(
+                rep.verdict,
+                f"Prompt-only arm (H3 ablation): abstention prompt active; gates measured (Composite {rep.composite:.2f}) "
+                "but not enforced.",
+            )
+        else:
+            ui.verdict_banner(rep.verdict, rep.explanation)
+
+        # 2. Key Metric Cards
+        k1, k2, k3, k4 = st.columns(4)
+        with k1:
+            ui.kpi_card(
+                "Gate A · Relevance",
+                f"{rep.gate_a.score:.3f}",
+                f"Threshold ≥ {settings.confidence.gate_a_threshold:.2f}",
+                ui.PASS if rep.gate_a.passed else ui.FAIL,
+            )
+        with k2:
+            gb_val = f"{rep.gate_b.score:.3f}" if rep.gate_b else "Skipped"
+            gb_col = (ui.PASS if rep.gate_b.passed else ui.FAIL) if rep.gate_b else ui.SKIP
+            ui.kpi_card(
+                "Gate B · Support",
+                gb_val,
+                f"Threshold ≥ {settings.confidence.gate_b_threshold:.2f}",
+                gb_col,
+            )
+        with k3:
+            comp_col = (
+                ui.PASS
+                if not rep.abstained and rep.composite >= settings.confidence.composite_threshold
+                else (ui.WARN if not rep.abstained else ui.FAIL)
+            )
+            ui.kpi_card(
+                "Composite",
+                f"{rep.composite:.3f}",
+                "Weights 0.4 A / 0.6 B",
+                comp_col,
+            )
+        with k4:
+            ui.kpi_card(
+                "Total Latency",
+                f"{result.total_ms / 1000:.2f} s",
+                f"Gates: {(rep.gate_a.latency_ms + (rep.gate_b.latency_ms if rep.gate_b else 0.0)):.0f} ms",
+                ui.ACCENT,
+            )
+
+        st.html("<div style='height:0.65rem'></div>")
+
+        # 3. System Response Card with Inline Citations
+        formatted_ans = ui.format_answer_html(result.displayed_answer)
+        st.html(
+            f"<div class='ink-card'>"
+            f"<div class='ink-card-hdr'>"
+            f"<span>{ui.icon_svg('file-text', 13, 1.5, 'var(--text-faint)')} System Response</span>"
+            f"<span>Model: <strong>{escape(settings.llm.provider)}:{escape(settings.llm.generator_model)}</strong></span>"
+            f"</div>"
+            f"<div class='ink-card-body'>{formatted_ans}</div>"
+            f"</div>"
+        )
+
+        # 4. Withheld Draft Expander (if suppressed by Gate B)
+        if rep.abstained and result.answer and not (baseline or prompt_only):
+            with st.expander("🔍 Inspect Withheld LLM Draft (Suppressed by Gate B)", expanded=False):
+                st.caption(
+                    "The generator produced this draft, but Gate B detected unsupported or contradicted "
+                    "claims and blocked it from reaching the user."
+                )
+                st.write(result.answer)
+
+    with right_col:
+        # Verification Inspector (Sticky right rail)
+        timings = {
+            "retrieval_ms": result.retrieval_ms,
+            "gate_a_ms": rep.gate_a.latency_ms,
+            "generate_ms": result.generation.latency_ms if result.generation else 0.0,
+            "gate_b_ms": rep.gate_b.latency_ms if rep.gate_b else 0.0,
+            "total_ms": result.total_ms,
+        }
+        st.html(
+            ui.verification_inspector_html(
+                gate_a_score=rep.gate_a.score,
+                gate_a_thresh=settings.confidence.gate_a_threshold,
+                gate_b_score=rep.gate_b.score if rep.gate_b else None,
+                gate_b_thresh=settings.confidence.gate_b_threshold,
+                composite=rep.composite,
+                composite_thresh=settings.confidence.composite_threshold,
+                timings=timings,
+            )
+        )
 
 
 def _render_side_by_side(guarded_res, base_res) -> None:
-    st.markdown("##### ⚖️ Live Side-by-Side Comparison: Guarded Pipeline vs. Unguarded Baseline")
+    st.markdown("##### ⚖️ Side-by-Side Arm Comparison: Guarded Pipeline vs. Baseline Control")
     col_g, col_b = st.columns(2)
     with col_g:
-        st.markdown("#### 🛡️ Guarded Arm (2-Gate Safety Active)")
+        st.markdown("#### 🛡️ Guarded Arm (2-Gate Active)")
         ui.verdict_banner(guarded_res.confidence.verdict, guarded_res.confidence.explanation)
         st.html(
-            f"<div class='cr-answer-box'>"
-            f"<div class='cr-answer-hdr'><span>Guarded Output</span>"
+            f"<div class='ink-card'>"
+            f"<div class='ink-card-hdr'><span>Guarded Output</span>"
             f"<span>Composite: {guarded_res.confidence.composite:.3f}</span></div>"
-            f"<div class='cr-answer-body'>{ui.format_answer_html(guarded_res.displayed_answer)}</div>"
+            f"<div class='ink-card-body'>{ui.format_answer_html(guarded_res.displayed_answer)}</div>"
             f"</div>"
         )
     with col_b:
         st.markdown("#### ⚠️ Baseline Control Arm (Gates Unforced)")
         ui.verdict_banner("answer", "Baseline control arm: always answers regardless of Gate A or Gate B failure.")
         st.html(
-            f"<div class='cr-answer-box'>"
-            f"<div class='cr-answer-hdr'><span>Baseline Output</span>"
+            f"<div class='ink-card'>"
+            f"<div class='ink-card-hdr'><span>Baseline Output</span>"
             f"<span>Composite: {base_res.confidence.composite:.3f}</span></div>"
-            f"<div class='cr-answer-body'>{ui.format_answer_html(base_res.displayed_answer)}</div>"
+            f"<div class='ink-card-body'>{ui.format_answer_html(base_res.displayed_answer)}</div>"
             f"</div>"
         )
 
@@ -488,43 +568,46 @@ def _tab_claims(rep) -> None:
     with c2:
         ui.kpi_card("Baseless Information", str(counts["baseless_information"]), "Entailment < 0.50", ui.WARN)
     with c3:
-        ui.kpi_card(
-            "Evident Conflict",
-            str(counts["evident_conflict"]),
-            "Contradiction ≥ 0.50 (Caps Gate B at 0.15)",
-            ui.FAIL,
-        )
+        ui.kpi_card("Evident Conflict", str(counts["evident_conflict"]), "Contradiction ≥ 0.50 (Caps at 0.15)", ui.FAIL)
 
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-    st.caption(
-        "Sentence-level verification following the RAGTruth hallucination taxonomy "
-        f"(scored with `nli_premise='{settings.confidence.nli_premise}'`, "
-        f"`nli_hypothesis='{settings.confidence.nli_hypothesis}'`)."
+    st.html(
+        f"<div style='font-size:0.75rem;color:var(--text-faint);margin:0.75rem 0 0.5rem 0'>"
+        f"Sentence-level verification following the RAGTruth hallucination taxonomy "
+        f"(scored with <code>premise='{settings.confidence.nli_premise}'</code>, <code>hypothesis='{settings.confidence.nli_hypothesis}'</code>)."
+        f"</div>"
     )
     for i, c in enumerate(b.claims, 1):
-        icon, label, colour = CLAIM_BADGE[c.taxonomy_label]
-        with st.container(border=True):
-            st.html(
-                f"{ui.chip(label, colour)} "
-                f"<span style='opacity:.75;font-size:.8rem;font-family:JetBrains Mono,monospace'>"
-                f"Claim #{i} · Best match: Passage #{c.best_context_index + 1}</span>"
-            )
-            st.markdown(f"**{icon} {c.claim}**")
-            st.progress(
-                min(max(c.entailment, 0.0), 1.0),
-                text=(
-                    f"Entailment (Support): {c.entailment:.3f}  |  "
-                    f"Neutral: {c.neutral:.3f}  |  "
-                    f"Contradiction: {c.contradiction:.3f}"
-                ),
-            )
+        label, colour = CLAIM_BADGE[c.taxonomy_label]
+        e_pct = max(0.0, min(100.0, c.entailment * 100))
+        n_pct = max(0.0, min(100.0, c.neutral * 100))
+        c_pct = max(0.0, min(100.0, c.contradiction * 100))
+        st.html(
+            f"<div class='ink-claim-row'>"
+            f"<div class='ink-claim-top'>"
+            f"{ui.chip(label, colour)}"
+            f"<span style='font-family:JetBrains Mono,monospace;font-size:0.71rem;color:var(--text-faint)'>"
+            f"Claim #{i} · Best match: Passage #{c.best_context_index + 1}</span>"
+            f"</div>"
+            f"<div class='ink-claim-text'>{ui.escape(c.claim)}</div>"
+            f"<div class='ink-claim-segbar'>"
+            f"<div style='width:{e_pct}%;background:var(--pass)' title='Entailment {c.entailment:.3f}'></div>"
+            f"<div style='width:{n_pct}%;background:var(--skip)' title='Neutral {c.neutral:.3f}'></div>"
+            f"<div style='width:{c_pct}%;background:var(--fail)' title='Contradiction {c.contradiction:.3f}'></div>"
+            f"</div>"
+            f"<div class='ink-claim-stats'>"
+            f"<span><strong style='color:var(--pass)'>E:</strong> {c.entailment:.3f}</span>"
+            f"<span><strong style='color:var(--text-muted)'>N:</strong> {c.neutral:.3f}</span>"
+            f"<span><strong style='color:var(--fail)'>C:</strong> {c.contradiction:.3f}</span>"
+            f"</div>"
+            f"</div>"
+        )
 
 
 def _tab_sources(result) -> None:
     a = result.confidence.gate_a
     b = result.confidence.gate_b
     supported_claims = [c.claim for c in (b.claims if b else []) if c.is_supported]
-    st.caption("Sentences matching verified claims are highlighted in green.")
+    st.caption("Passages retrieved from ChromaDB. Sentences matching verified claims are highlighted in green.")
     for i, chunk in enumerate(result.retrieval.chunks):
         rel = a.per_chunk_relevance[i] if i < len(a.per_chunk_relevance) else None
         rel_badge = f" · Reranker {rel:.3f}" if rel is not None else ""
@@ -534,26 +617,29 @@ def _tab_sources(result) -> None:
             if rel is not None:
                 col = ui.PASS if rel >= settings.confidence.gate_a_threshold else ui.WARN
                 st.html(
+                    f"<div style='margin-bottom:0.45rem'>"
                     f"{ui.chip(f'Reranker Relevance: {rel:.3f}', col)} "
                     f"{ui.chip(f'Bi-Encoder Cosine: {chunk.similarity:.3f}', ui.BRAND)}"
+                    f"</div>"
                 )
             st.html(
-                f"<div style='font-size:0.93rem;line-height:1.65'>"
+                f"<div style='font-size:0.91rem;line-height:1.65;color:var(--text)'>"
                 f"{ui.highlight_passage_html(chunk.text, supported_claims)}</div>"
             )
 
 
-def _tab_details(result) -> None:
+def _tab_telemetry(result) -> None:
     rep = result.confidence
     rows = [
         ("1 · Vector Retrieval (Chroma + MiniLM)", result.retrieval_ms),
-        ("2 · Gate A Reranker", rep.gate_a.latency_ms),
+        ("2 · Gate A Reranker (ms-marco-MiniLM)", rep.gate_a.latency_ms),
     ]
     if result.generation:
         rows.append(("3 · LLM Generation", result.generation.latency_ms))
     if rep.gate_b:
         rows.append(("4 · Gate B DeBERTa NLI", rep.gate_b.latency_ms))
     rows.append(("Total Pipeline Wall Time", result.total_ms))
+
     st.dataframe(
         {
             "Pipeline Stage": [r[0] for r in rows],
@@ -563,6 +649,7 @@ def _tab_details(result) -> None:
         hide_index=True,
         use_container_width=True,
     )
+
     st.caption(
         f"Provider `{settings.llm.provider}` · Model `{settings.llm.generator_model}` · "
         f"Verifier `{settings.confidence.scorer}` · Premise `{settings.confidence.nli_premise}` · "
@@ -578,12 +665,16 @@ def _tab_details(result) -> None:
 
 
 def _intro() -> None:
-    st.markdown("##### 🏗️ Two-Gate Selective Prediction Architecture")
+    st.html(
+        "<div style='margin:1rem 0 0.5rem 0;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint)'>"
+        "Two-Gate Selective Prediction Architecture"
+        "</div>"
+    )
     c1, c2, c3 = st.columns(3)
     with c1:
         ui.card(
             "1 · Pre-Generation Gate A (Sufficiency)",
-            "Scores query-passage relevance via ms-marco-MiniLM-L-6-v2 before calling the LLM. "
+            "Scores query-passage relevance via ms-marco-MiniLM before calling the LLM. "
             "Out-of-scope queries abstain in ~15 ms with zero LLM token cost.",
         )
     with c2:
@@ -603,13 +694,24 @@ def _intro() -> None:
 def main() -> None:
     ui.inject_css()
     opts = _sidebar()
+    ui.inject_ambient_cursor_effect(enabled=opts.get("ambient_enabled", True))
 
-    ui.hero(
-        "Confidence-Aware RAG Studio",
-        "Selective retrieval-augmented generation with inline pre-generation relevance gating, "
-        "post-generation DeBERTa NLI claim verification, and SQLite telemetry.",
+    # Top Bar: Wordmark + Live Telemetry Status Chips
+    arm_label = (
+        "Baseline (Gates Off)"
+        if opts["baseline"]
+        else ("Prompt-Only (H3)" if opts["prompt_only"] else "Guarded (2-Gate)")
+    )
+    ui.top_bar(
+        provider=settings.llm.provider,
+        model=settings.llm.generator_model,
+        scorer=settings.confidence.scorer,
+        n_passages=_index_count(),
+        collection=settings.retrieval.collection_name,
+        arm=arm_label,
     )
 
+    # 4 Diagnostic Sample Query Cards + Command Bar Input
     question = _ask_form()
     raw_res = _run(question, opts) if question else None
 
@@ -627,24 +729,26 @@ def main() -> None:
     else:
         primary = raw_res
         ui.pipeline_strip(primary, baseline=opts["baseline"], prompt_only=opts["prompt_only"])
-        _render_answer(primary, opts["baseline"], opts["prompt_only"])
+        _render_result_split(primary, opts["baseline"], opts["prompt_only"])
 
-    t1, t2, t3, t4 = st.tabs(
+    # Underline Tabs below Result Area: Gauges, Claims, Passages, Telemetry
+    tab_scores, tab_claims, tab_sources, tab_telemetry = st.tabs(
         [
-            "🎯 Confidence Gauges",
-            "🔬 Claim-Level NLI Check",
-            "📚 Retrieved Passages",
-            "⏱️ Latency & Telemetry",
+            "Confidence Gauges & Signals",
+            "Claim-Level NLI Verification",
+            "Retrieved Passages & Spans",
+            "Telemetry & Latency Budget",
         ]
     )
-    with t1:
+    with tab_scores:
         _tab_scores(primary.confidence)
-    with t2:
+    with tab_claims:
         _tab_claims(primary.confidence)
-    with t3:
+    with tab_sources:
         _tab_sources(primary)
-    with t4:
-        _tab_details(primary)
+    with tab_telemetry:
+        _tab_telemetry(primary)
+
     _index_status(opts["index_slot"])
 
 

@@ -162,6 +162,18 @@ class ConfidenceConfig:
     # Below this entailment probability a claim counts as unsupported.
     support_threshold: float = 0.50
 
+    # Margin over entailment required for an un-entailed claim to count as Evident Conflict.
+    # A claim is only conflicted if best_contra >= contradiction_threshold AND
+    # (best_contra - best_entail) >= contradiction_margin.
+    contradiction_margin: float = float(os.getenv("RAG_CONTRADICTION_MARGIN", "0.30"))
+
+    # Minimum word count for a segmented claim. Fragments shorter than this
+    # are dropped as non-factual scaffolding.
+    min_claim_words: int = int(os.getenv("RAG_MIN_CLAIM_WORDS", "4"))
+
+    # Maximum top passages by Gate A relevance used to generate multi-hop pairs.
+    multi_hop_top_k: int = int(os.getenv("RAG_MULTI_HOP_TOP_K", "4"))
+
     # Abstention message shown to the user when a gate fails.
     abstain_message: str = (
         "I am not confident enough to answer this from the indexed documents. "
